@@ -26,6 +26,8 @@
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin>
 	<!-- Day/Night terminator plugin -->
 	<script src="https://unpkg.com/leaflet.terminator@0.4.0/L.Terminator.js" defer></script>
+	<script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
+
 
 	<style>
 		:root {
@@ -158,6 +160,136 @@
 			color: var(--accent);
 			text-decoration: underline
 		}
+
+		/* Badges / chips */
+		.badges {
+			display: flex;
+			gap: 8px;
+			flex-wrap: wrap;
+			align-items: center
+		}
+
+		.badge {
+			padding: .25rem .55rem;
+			border-radius: 999px;
+			border: 1px solid rgba(121, 214, 181, .28);
+			background: linear-gradient(180deg, rgba(121, 214, 181, .10), rgba(46, 125, 107, .08));
+			font-size: .9rem;
+			color: var(--text);
+			white-space: nowrap
+		}
+
+		.badge.muted {
+			color: var(--muted)
+		}
+
+		/* Starfield canvas behind the map */
+		.starfield {
+			position: absolute;
+			inset: 0;
+			z-index: 0;
+			pointer-events: none;
+			opacity: .35;
+			mix-blend-mode: screen;
+		}
+
+		/* Layer toggle row */
+		.layer-row {
+			display: flex;
+			gap: 10px;
+			align-items: center;
+			margin-top: 10px;
+			flex-wrap: wrap
+		}
+
+		.toggle {
+			display: inline-flex;
+			gap: 6px;
+			align-items: center;
+			font-size: .9rem;
+			color: var(--muted)
+		}
+
+		.toggle input {
+			accent-color: var(--accent)
+		}
+
+		/* Historic trail is just lower opacity */
+		.leaflet-container .iss-history {
+			opacity: .35
+		}
+
+		/* Countdown pill */
+		.countdown {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 6px 10px;
+			border-radius: 999px;
+			border: 1px solid rgba(121, 214, 181, .25);
+			background: linear-gradient(180deg, rgba(121, 214, 181, .10), rgba(46, 125, 107, .08));
+			font-size: 14px;
+			color: var(--text);
+		}
+
+		/* Docked vehicles row */
+		.docked {
+			display: flex;
+			gap: 8px;
+			flex-wrap: wrap;
+			margin-top: 10px
+		}
+
+		.badge {
+			padding: 4px 8px;
+			border-radius: 999px;
+			font-size: 12px;
+			border: 1px solid rgba(121, 214, 181, .25);
+			background: #0f1b18;
+			color: var(--text)
+		}
+
+		.badge.soyuz {
+			border-color: #8bc34a
+		}
+
+		.badge.dragon {
+			border-color: #4fc3f7
+		}
+
+		.badge.progress {
+			border-color: #ffb74d
+		}
+
+		.badge.htv {
+			border-color: #b39ddb
+		}
+
+		.badge.cygnus {
+			border-color: #ffd54f
+		}
+
+		/* Trail styling */
+		.trail-old {
+			color: #79D6B5;
+			opacity: .25
+		}
+
+		.trail-older {
+			color: #79D6B5;
+			opacity: .12
+		}
+
+		/* Layer toggle control nudge on mobile */
+		.leaflet-control-layers {
+			border-radius: 10px;
+			overflow: hidden
+		}
+
+		/* make starfield work inside the map container */
+		.map-shell {
+			position: relative;
+		}
 	</style>
 </head>
 
@@ -193,10 +325,15 @@
 		</section>
 
 		<section class="card" style="margin-top:14px">
-			<header style="display:flex;justify-content:space-between;align-items:center;">
+			<header style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
 				<strong>ISS position</strong>
-				<small class="muted" id="iss-updated" aria-live="polite">—</small>
+				<div class="badges">
+					<span class="badge muted" id="daynight-state">—</span>
+					<span class="badge" id="countdown">Next transition: —</span>
+					<span class="badge muted" id="iss-updated">—</span>
+				</div>
 			</header>
+
 
 			<div id="iss-map" class="map-shell"></div>
 
@@ -206,6 +343,15 @@
 					<span id="vel">–</span> km/h
 				</div>
 			</div>
+
+			<div class="row" style="margin-top:8px;justify-content:space-between;gap:10px;align-items:center;">
+				<div class="badges" id="docked-badges" title="Docked spacecraft"></div>
+				<div class="layer-row">
+					<label class="toggle"><input type="checkbox" id="toggle-stars" checked> Stars</label>
+					<label class="toggle"><input type="checkbox" id="toggle-clouds"> Clouds</label>
+				</div>
+			</div>
+
 		</section>
 
 		<div class="footer">Tip: use your browser’s video menu for Picture-in-Picture.</div>
@@ -245,56 +391,126 @@
 		});
 	</script>
 
-	<!-- Leaflet -->
+	<!-- Leaflet core -->
 	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin></script>
 	<script>
 		(async function () {
-			// Create map
-			const map = L.map('iss-map', { worldCopyJump: true, zoomControl: false, attributionControl: false })
-				.setView([0, 0], 3);
+			// ---------- Base map & layers ----------
+			const dark = L.tileLayer(
+				'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
+				{ subdomains: 'abcd', maxZoom: 7 }
+			);
+			const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 7 });
 
-			L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-				maxZoom: 7,
-				attribution: '&copy; OpenStreetMap'
-			}).addTo(map);
+			const map = L.map('iss-map', {
+				worldCopyJump: true,
+				zoomControl: false,
+				attributionControl: false,
+				layers: [dark]
+			}).setView([0, 0], 3);
 
-			// Day/Night terminator (wait until plugin is loaded)
-			let terminator;
+			// Optional clouds layer (OpenWeatherMap)
+			const OWM_KEY = ''; // <-- add your OWM key to enable
+			const clouds = OWM_KEY
+				? L.tileLayer(`https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=${OWM_KEY}`, { opacity: .55, maxZoom: 7 })
+				: null;
+
+			const baseMaps = { "Dark (spacey)": dark, "OSM": osm };
+			const overlays = {};
+			if (clouds) overlays["Clouds (OWM)"] = clouds;
+
+			L.control.layers(baseMaps, overlays, { position: 'topright' }).addTo(map);
+
+			// ---------- Terminator (day/night) ----------
+			let termLayer = null;
 			function refreshTerminator() {
 				if (!('terminator' in L)) return;
 				const t = L.terminator({ fillOpacity: .35, color: '#000', fillColor: '#000' });
-				if (terminator) map.removeLayer(terminator);
-				terminator = t.addTo(map);
+				if (termLayer) map.removeLayer(termLayer);
+				termLayer = t.addTo(map);
 			}
-			// initial + refresh every minute
-			const termInit = setInterval(() => {
+			// wait for plugin if needed, then refresh every minute
+			const termWait = setInterval(() => {
 				if ('terminator' in L) {
-					clearInterval(termInit);
+					clearInterval(termWait);
 					refreshTerminator();
 					setInterval(refreshTerminator, 60_000);
 				}
 			}, 100);
 
-			// ISS icon (on-brand green)
+			// ---------- Starfield (canvas overlay) ----------
+			const starsToggle = document.getElementById('toggle-stars');
+			let starsCanvas = null;
+			function drawStars() {
+				if (starsCanvas) return; // already on
+				starsCanvas = document.createElement('canvas');
+				starsCanvas.className = 'starfield';
+				const host = document.getElementById('iss-map');
+				host.appendChild(starsCanvas);
+
+				function paint() {
+					const r = host.getBoundingClientRect();
+					starsCanvas.width = r.width;
+					starsCanvas.height = r.height;
+					const ctx = starsCanvas.getContext('2d');
+					ctx.clearRect(0, 0, r.width, r.height);
+					// density scales with area; cap to keep light
+					const count = Math.min(350, Math.floor((r.width * r.height) / 8000));
+					for (let i = 0; i < count; i++) {
+						const x = Math.random() * r.width;
+						const y = Math.random() * r.height;
+						const size = Math.random() * 1.4 + 0.3;
+						const alpha = Math.random() * 0.7 + 0.2;
+						ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+						ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2); ctx.fill();
+					}
+				}
+				paint();
+				// repaint on resize
+				const ro = new ResizeObserver(paint); ro.observe(host);
+				starsCanvas._ro = ro;
+			}
+			function removeStars() {
+				if (!starsCanvas) return;
+				starsCanvas._ro?.disconnect?.();
+				starsCanvas.remove();
+				starsCanvas = null;
+			}
+			// init stars on first load if checked
+			if (starsToggle && starsToggle.checked) drawStars();
+			starsToggle?.addEventListener('change', (e) => e.target.checked ? drawStars() : removeStars());
+
+			// Clouds toggle (if key provided)
+			const cloudsToggle = document.getElementById('toggle-clouds');
+			if (cloudsToggle) {
+				cloudsToggle.disabled = !clouds; // no key, disable control
+				cloudsToggle.addEventListener('change', (e) => {
+					if (!clouds) return;
+					e.target.checked ? clouds.addTo(map) : map.removeLayer(clouds);
+				});
+			}
+
+			// ---------- ISS marker, trails & forecast ----------
 			const issIcon = L.divIcon({
 				className: 'iss-icon',
-				html: `
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))">
+				html: `<svg width="34" height="34" viewBox="0 0 24 24" fill="none" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))">
             <circle cx="12" cy="12" r="10" stroke="#79D6B5" stroke-width="1.5" opacity=".75"/>
             <path d="M3 12h18M12 3v18" stroke="#79D6B5" stroke-width="1.2" opacity=".35"/>
             <circle cx="12" cy="12" r="2.8" fill="#79D6B5"/>
           </svg>`,
-				iconSize: [34, 34],
-				iconAnchor: [17, 17]
+				iconSize: [34, 34], iconAnchor: [17, 17]
 			});
-
 			const marker = L.marker([0, 0], { icon: issIcon }).addTo(map);
-			const trail = L.polyline([], { color: '#79D6B5', weight: 2, opacity: .85 }).addTo(map);
 
-			// 20-minute ground-track prediction (dashed, same green)
-			const prediction = L.polyline([], { color: '#79D6B5', weight: 2, opacity: .55, dashArray: '6,8' }).addTo(map);
+			let liveTrail = L.polyline([], { color: '#79D6B5', weight: 2, opacity: .9 }).addTo(map);
+			const oldTrails = [
+				L.polyline([], { color: '#79D6B5', weight: 2, opacity: .25 }),
+				L.polyline([], { color: '#79D6B5', weight: 2, opacity: .12 })
+			].map(t => t.addTo(map));
 
-			// UI helpers
+			let forecastTrail = L.polyline([], { color: '#79D6B5', weight: 2, opacity: .65, dashArray: '6,8' }).addTo(map);
+
+			// ---------- Utilities ----------
 			const $ = id => document.getElementById(id);
 			const fmtLat = (n, p = 2) => `${Math.abs(n).toFixed(p)}°${n >= 0 ? 'N' : 'S'}`;
 			const fmtLon = (n, p = 2) => `${Math.abs(n).toFixed(p)}°${n >= 0 ? 'E' : 'W'}`;
@@ -303,31 +519,89 @@
 				const r = await fetch('https://api.wheretheiss.at/v1/satellites/25544', { cache: 'no-store' });
 				if (!r.ok) throw new Error('ISS API error');
 				const d = await r.json();
-				return {
-					lat: d.latitude, lon: d.longitude,
-					alt: d.altitude, vel: d.velocity,
-					ts: new Date()
-				};
+				return { lat: d.latitude, lon: d.longitude, alt: d.altitude, vel: d.velocity, ts: new Date() };
 			}
 
-			// Query next ~20 minutes at 30s cadence (uses where-the-iss positions endpoint)
-			async function fetchPrediction(baseTsMs) {
-				const base = Math.floor(baseTsMs / 1000);
-				const step = 30;                 // seconds
-				const count = 40;                // 40 * 30s = 1200s = 20m
-				const stamps = [];
-				for (let i = 1; i <= count; i++) stamps.push(base + i * step);
-				const url = `https://api.wheretheiss.at/v1/satellites/25544/positions?timestamps=${stamps.join(',')}&units=kilometers`;
-				const r = await fetch(url, { cache: 'no-store' });
-				if (!r.ok) throw new Error('Prediction API error');
-				const arr = await r.json();
-				return arr.map(p => [p.latitude, p.longitude]);
+			// split trail at antimeridian
+			function shouldSplit(prev, curr) {
+				if (!prev) return false;
+				return Math.abs(curr.lon - prev.lon) > 300;
+			}
+			function rollTrails() {
+				oldTrails[1].setLatLngs(oldTrails[0].getLatLngs());
+				oldTrails[0].setLatLngs(liveTrail.getLatLngs());
+				liveTrail.setLatLngs([]);
 			}
 
-			// Poll with graceful backoff
-			let fail = 0;
-			let first = true;
-			let lastPredUpdate = 0;
+			// quick forecast (swap later for SGP4 if you want perfect precision)
+			function buildForecast(lat, lon, velKmh) {
+				const pts = [];
+				const R = 6371; // km
+				const speed = velKmh || 27600;
+				const dt = 15; // seconds
+				const steps = Math.floor(20 * 60 / dt);
+				let phi = lat * Math.PI / 180, lam = lon * Math.PI / 180;
+				for (let i = 0; i <= steps; i++) {
+					const ds = (speed / 3600) * dt;
+					const dlam = (ds / (R * Math.cos(phi))) * (Math.PI / 180);
+					lam += dlam;
+					let lonDeg = (lam * 180 / Math.PI + 540) % 360 - 180;
+					pts.push([lat, lonDeg]);
+				}
+				return pts;
+			}
+
+			// Day/Night state & countdown
+			function isDay(lat, lon, date = new Date()) {
+				const sun = SunCalc.getPosition(date, lat, lon);
+				return sun.altitude > 0;
+			}
+			function findNextTerminator(lat, lon) {
+				const now = Date.now();
+				const nowIsDay = isDay(lat, lon, new Date(now));
+				let lo = 0, hi = 45 * 60 * 1000;
+				for (let i = 0; i < 24; i++) {
+					const mid = Math.floor((lo + hi) / 2);
+					const t = new Date(now + mid);
+					isDay(lat, lon, t) === nowIsDay ? lo = mid : hi = mid;
+				}
+				return { when: new Date(now + hi), type: nowIsDay ? 'Sunset' : 'Sunrise' };
+			}
+			function renderCountdown(target, label) {
+				const now = new Date();
+				let s = Math.max(0, Math.floor((target - now) / 1000));
+				const h = Math.floor(s / 3600); s %= 3600;
+				const m = Math.floor(s / 60); s %= 60;
+				return `${label} in ${h ? h + ':' : ''}${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+			}
+
+			// Docked vehicles hook (point to your JSON if available)
+			async function fetchDocked() {
+				const url = ''; // e.g. '/api/iss-docked'
+				if (!url) return [];
+				try { const r = await fetch(url, { cache: 'no-store' }); return r.ok ? (await r.json()) : []; }
+				catch { return []; }
+			}
+			function badgeClass(name = '') {
+				const n = name.toLowerCase();
+				if (n.includes('dragon')) return 'dragon';
+				if (n.includes('soyuz')) return 'soyuz';
+				if (n.includes('progress')) return 'progress';
+				if (n.includes('htv')) return 'htv';
+				if (n.includes('cygnus')) return 'cygnus';
+				return '';
+			}
+			async function renderDocked() {
+				const list = await fetchDocked();
+				const wrap = document.getElementById('docked-badges');
+				if (!wrap) return;
+				wrap.innerHTML = list.map(x =>
+					`<span class="badge ${badgeClass(x.vehicle)}">${x.vehicle || 'Vehicle'}${x.agency ? ` — ${x.agency}` : ''}</span>`
+				).join('');
+			}
+
+			// ---------- Main loop ----------
+			let prev = null, first = true, nextTerm = null, termTimer = null, lastPred = 0;
 
 			async function tick() {
 				try {
@@ -336,40 +610,54 @@
 
 					marker.setLatLng(ll);
 
-					const pts = trail.getLatLngs();
-					pts.push(ll);
-					if (pts.length > 240) pts.shift(); // keep ~20 min @ 5s
-					trail.setLatLngs(pts);
+					if (shouldSplit(prev, p)) rollTrails();
+					const seg = liveTrail.getLatLngs(); seg.push(ll);
+					if (seg.length > 2000) seg.splice(0, seg.length - 2000);
+					liveTrail.setLatLngs(seg);
 
 					if (first) { map.setView(ll, 3); first = false; }
 
-					$('lat').textContent = fmtLat(p.lat);
-					$('lon').textContent = fmtLon(p.lon);
-					$('alt').textContent = p.alt.toFixed(1);
-					$('vel').textContent = Math.round(p.vel);
-					$('iss-updated').textContent = p.ts.toLocaleTimeString();
+					// UI
+					document.getElementById('lat').textContent = fmtLat(p.lat);
+					document.getElementById('lon').textContent = fmtLon(p.lon);
+					document.getElementById('alt').textContent = p.alt.toFixed(1);
+					document.getElementById('vel').textContent = Math.round(p.vel);
+					document.getElementById('iss-updated').textContent = p.ts.toLocaleTimeString();
 
-					// Refresh prediction at most once per minute
-					const now = Date.now();
-					if (now - lastPredUpdate > 60_000) {
-						lastPredUpdate = now;
-						try {
-							const predPts = await fetchPrediction(now);
-							prediction.setLatLngs(predPts);
-						} catch { /* silently ignore prediction hiccups */ }
+					// Day/Night state & countdown
+					const day = isDay(p.lat, p.lon);
+					document.getElementById('daynight-state').textContent = day ? 'Daylight' : 'Night';
+					nextTerm = findNextTerminator(p.lat, p.lon);
+					if (!termTimer) {
+						termTimer = setInterval(() => {
+							if (!nextTerm) return;
+							document.getElementById('countdown').textContent = renderCountdown(nextTerm.when, nextTerm.type);
+							if (Date.now() >= nextTerm.when.getTime()) nextTerm = null;
+						}, 1000);
 					}
 
-					fail = 0;
-				} catch (e) {
-					fail = Math.min(fail + 1, 6); // cap backoff
-				} finally {
-					// 5s base, multiply by (1..6) on failures
-					setTimeout(tick, 5000 * Math.max(1, fail));
+					// Forecast refresh (1/min)
+					const now = Date.now();
+					if (now - lastPred > 60_000) {
+						lastPred = now;
+						const pts = buildForecast(p.lat, p.lon, p.vel);
+						forecastTrail.setLatLngs(pts);
+					}
+
+					prev = p;
+				} catch { }
+				finally {
+					setTimeout(tick, 5000);
 				}
 			}
+
+			await renderDocked();
+			setInterval(renderDocked, 60 * 60 * 1000); // hourly
 			tick();
 		})();
 	</script>
+
+
 </body>
 
 </html>
