@@ -1,60 +1,375 @@
-<!DOCTYPE html>
-<html lang="en-gb">
+<!doctype html>
+<html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-    <title>ISS Live Feed👽😎🔱🔥</title>
-    <meta name="description" content="This is a live feed from the International Space Station's High Definition Live Streaming Video of the Earth (HDEV). Enjoy!">
-    <link rel="canonical" href="https://iss.syncpundit.com/">
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:site" content="@Sync_Pundit">
-    <meta name="twitter:title" content="ISS Live Feed👽😎🔱🔥">
-    <link rel="icon" type="image/png" href="/assets/favicon.png"/>
-    <meta name="twitter:description" content="This is a live feed from the International Space Station's High Definition Live Streaming Video of the Earth (HDEV). Enjoy!">
-    <meta name="author" content="Sync_Pundit 👽😎🔱🔥">
-    <meta name="description" content="This is a live feed from the International Space Station's High Definition Live Streaming Video of the Earth (HDEV). Enjoy!">
-    <meta name="keywords" content="ISS, HDEV, International Space Station, Sync_Pundit,👽😎🔱🔥, Deon Trevor Mpofu, Sync Pundit, syncpundit, Cyber Security Analyst, curious n00b">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="abuseipdb-verification" content="PE2zl36d">
-  	<link rel="prerender" href="github.syncpundit.io">
-		<link rel="preconnect" href="github.syncpundit.io">
-		<link rel="prerender" href="search.syncpundit.io">
-		<link rel="preconnect" href="search.syncpundit.io">
-		<link rel="dns-prefetch" href="search.syncpundit.io">
-		<link rel="prerender" href="translate.syncpundit.io">
-		<link rel="preconnect" href="translate.syncpundit.io">
-		<link rel="dns-prefetch" href="translate.syncpundit.io">
-		<link rel="prerender" href="pihole.syncpundit.io">
-		<link rel="preconnect" href="pihole.syncpundit.io">
-		<link rel="dns-prefetch" href="pihole.syncpundit.io">
-		<link rel="prerender" href="code.syncpundit.io">
-		<link rel="preconnect" href="code.syncpundit.io">
-		<link rel="dns-prefetch" href="code.syncpundit.io">
-		<link rel="prerender" href="piped.syncpundit.io">
-		<link rel="preconnect" href="piped.syncpundit.io">
-		<link rel="dns-prefetch" href="piped.syncpundit.io">
-		<link rel="dns-prefetch" href="github.syncpundit.io">
-		<link rel="dns-prefetch" href="syncpundit.io">
-		<link rel="dns-prefetch" href="https://y.at/👽😎🔱🔥">
-		<link rel="prerender" href="syncpundit.io">
-		<link rel="prerender" href="https://y.at/👽😎🔱🔥">
-		<link rel="preconnect" href="syncpundit.io">
-		<link rel="preconnect" href="https://y.at/👽😎🔱🔥">
-		<link rel="prerender" href="blog.syncpundit.io">
-		<link rel="preconnect" href="blog.syncpundit.io">
-		<link rel="dns-prefetch" href="blog.syncpundit.io">
-    <script src="https://cdn.jsdelivr.net/npm/@widgetbot/crate@3" async defer="defer" type="94a304794424f2a06c22f615-text/javascript">
-        new Crate({
-                server: '741328290996027454', // Sync_Pundit
-                channel: '747563756732678175' // #hack_things
-              })
-    </script>
-    <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="Sync_Pundit" data-description="Support me on Buy me a coffee!" data-message="Buy me a pizza😅" data-color="#79D6B5" data-position="left" data-x_margin="22" data-y_margin="22"></script>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>ISS Live Feed 👽😎🔱🔥</title>
+	<meta name="description"
+		content="Live view of Earth from the International Space Station (HDEV), plus live position." />
+	<link rel="icon" href="/assets/favicon.png" />
+
+	<!-- Social -->
+	<meta property="og:title" content="ISS Live Feed" />
+	<meta property="og:description" content="Live view of Earth from the ISS (HDEV) with live position map." />
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="https://iss.syncpundit.com/" />
+	<meta property="og:image" content="/assets/og-iss.jpg" />
+	<meta name="twitter:card" content="summary_large_image" />
+
+	<!-- Performance -->
+	<link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin />
+	<link rel="preconnect" href="https://i.ytimg.com" crossorigin />
+	<link rel="preconnect" href="https://api.wheretheiss.at" />
+
+	<!-- Leaflet -->
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin>
+	<!-- Day/Night terminator plugin -->
+	<script src="https://unpkg.com/leaflet.terminator@0.4.0/L.Terminator.js" defer></script>
+
+	<style>
+		:root {
+			--bg: #0b0f14;
+			--card: #0f151b;
+			--text: #e8f1f4;
+			--muted: #8aa0ad;
+			--accent: #79D6B5;
+			--ring: rgba(121, 214, 181, .35);
+			--radius: 16px;
+			--shadow: 0 12px 28px rgba(0, 0, 0, .35);
+		}
+
+		* {
+			box-sizing: border-box
+		}
+
+		html,
+		body {
+			height: 100%
+		}
+
+		body {
+			margin: 0;
+			background: radial-gradient(100% 60% at 50% 0%, rgba(121, 214, 181, .12), transparent 60%), var(--bg);
+			color: var(--text);
+			font: 500 16px/1.55 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+		}
+
+		.wrap {
+			max-width: 1100px;
+			margin: 0 auto;
+			padding: 20px
+		}
+
+		header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 14px
+		}
+
+		.title {
+			font-size: clamp(1.3rem, 2.5vw, 2rem);
+			font-weight: 800
+		}
+
+		.muted {
+			color: var(--muted)
+		}
+
+		.card {
+			background: var(--card);
+			border-radius: var(--radius);
+			box-shadow: var(--shadow);
+			padding: 14px;
+			border: 1px solid rgba(121, 214, 181, .15)
+		}
+
+		.video-shell {
+			position: relative;
+			border-radius: 14px;
+			overflow: hidden;
+			background: #000
+		}
+
+		.video-shell::before {
+			content: "";
+			display: block;
+			aspect-ratio: 16/9;
+			width: 100%
+		}
+
+		.video-shell>iframe {
+			position: absolute;
+			inset: 0;
+			width: 100%;
+			height: 100%;
+			border: 0;
+			border-radius: 14px
+		}
+
+		.map-shell {
+			border-radius: 14px;
+			overflow: hidden;
+			height: 280px;
+			background: #0b0f14
+		}
+
+		.leaflet-container {
+			background: #0b0f14
+		}
+
+		.row {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+			margin-top: 10px;
+			align-items: center
+		}
+
+		.btn {
+			padding: 10px 14px;
+			border-radius: 10px;
+			border: 1px solid rgba(121, 214, 181, .25);
+			background: #0f1b18;
+			color: var(--text);
+			cursor: pointer
+		}
+
+		.btn.primary {
+			background: linear-gradient(90deg, #2e7d6b, var(--accent));
+			border-color: transparent;
+			font-weight: 700
+		}
+
+		.btn:focus {
+			outline: 2px solid var(--ring);
+			outline-offset: 2px
+		}
+
+		.footer {
+			margin: 16px 0 6px;
+			text-align: center;
+			color: var(--muted);
+			font-size: 14px
+		}
+
+		a {
+			color: var(--accent);
+			text-decoration: underline
+		}
+	</style>
 </head>
 
-<body style="background-color:black;">
+<body>
+	<div class="wrap">
+		<header>
+			<div>
+				<div class="title">ISS Live Feed</div>
+				<div class="muted">High-definition view of Earth from the Station.</div>
+			</div>
+			<button id="open-chat" class="btn" type="button">Open chat</button>
+		</header>
 
-    <iframe width=100% height="900" src="https://www.youtube.com/embed/P9C25Un7xaM" title="Live High-Definition Views from the International Space Station (Official NASA Stream)" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+		<section class="card">
+			<div class="video-shell">
+				<iframe id="iss-yt" loading="lazy" title="ISS Live HD Earth View"
+					src="https://www.youtube-nocookie.com/embed/DIgkvm2nmHc?autoplay=1&mute=1&rel=0"
+					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+					referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
+				</iframe>
+			</div>
+
+			<div id="fallback" class="muted" style="display:none;margin-top:10px;">
+				Stream looks unavailable. Try the mirror:
+				<a href="https://piped.syncpundit.io/embed/DIgkvm2nmHc" target="_blank" rel="noopener">Open mirror</a>
+			</div>
+
+			<div class="row">
+				<button id="pip" class="btn" type="button"
+					title="Tip: use the video menu or your browser shortcut for PiP">Picture-in-Picture</button>
+				<button id="support" class="btn primary" type="button">Buy me a pizza 😅</button>
+			</div>
+		</section>
+
+		<section class="card" style="margin-top:14px">
+			<header style="display:flex;justify-content:space-between;align-items:center;">
+				<strong>ISS position</strong>
+				<small class="muted" id="iss-updated" aria-live="polite">—</small>
+			</header>
+
+			<div id="iss-map" class="map-shell"></div>
+
+			<div class="row" style="margin-top:12px">
+				<div class="muted">
+					Lat: <span id="lat">–</span> • Lon: <span id="lon">–</span> • Alt: <span id="alt">–</span> km • Vel:
+					<span id="vel">–</span> km/h
+				</div>
+			</div>
+		</section>
+
+		<div class="footer">Tip: use your browser’s video menu for Picture-in-Picture.</div>
+	</div>
+
+	<!-- Defer heavy third-party until clicked -->
+	<script>
+		document.getElementById('open-chat').addEventListener('click', () => {
+			const s = document.createElement('script');
+			s.src = 'https://cdn.jsdelivr.net/npm/@widgetbot/crate@3';
+			s.onload = () => new Crate({ server: '741328290996027454', channel: '747563756732678175' });
+			document.body.appendChild(s);
+		});
+
+		document.getElementById('support').addEventListener('click', () => {
+			const s = document.createElement('script');
+			s.dataset.name = 'BMC-Widget';
+			s.dataset.cfasync = 'false';
+			s.src = 'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js';
+			s.setAttribute('data-id', 'Sync_Pundit');
+			s.setAttribute('data-message', 'Buy me a pizza😅');
+			s.setAttribute('data-color', '#79D6B5');
+			s.setAttribute('data-position', 'left');
+			s.setAttribute('data-x_margin', '22');
+			s.setAttribute('data-y_margin', '22');
+			document.body.appendChild(s);
+		});
+
+		// PiP note (YT iframes block programmatic PiP)
+		document.getElementById('pip').addEventListener('click', () => {
+			alert('Tip: right-click the video and choose Picture-in-Picture (or use your browser shortcut).');
+		});
+
+		// Simple error fallback (fires when iframe fails to load)
+		document.getElementById('iss-yt').addEventListener('error', () => {
+			document.getElementById('fallback').style.display = 'block';
+		});
+	</script>
+
+	<!-- Leaflet -->
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin></script>
+	<script>
+		(async function () {
+			// Create map
+			const map = L.map('iss-map', { worldCopyJump: true, zoomControl: false, attributionControl: false })
+				.setView([0, 0], 3);
+
+			L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+				maxZoom: 7,
+				attribution: '&copy; OpenStreetMap'
+			}).addTo(map);
+
+			// Day/Night terminator (wait until plugin is loaded)
+			let terminator;
+			function refreshTerminator() {
+				if (!('terminator' in L)) return;
+				const t = L.terminator({ fillOpacity: .35, color: '#000', fillColor: '#000' });
+				if (terminator) map.removeLayer(terminator);
+				terminator = t.addTo(map);
+			}
+			// initial + refresh every minute
+			const termInit = setInterval(() => {
+				if ('terminator' in L) {
+					clearInterval(termInit);
+					refreshTerminator();
+					setInterval(refreshTerminator, 60_000);
+				}
+			}, 100);
+
+			// ISS icon (on-brand green)
+			const issIcon = L.divIcon({
+				className: 'iss-icon',
+				html: `
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))">
+            <circle cx="12" cy="12" r="10" stroke="#79D6B5" stroke-width="1.5" opacity=".75"/>
+            <path d="M3 12h18M12 3v18" stroke="#79D6B5" stroke-width="1.2" opacity=".35"/>
+            <circle cx="12" cy="12" r="2.8" fill="#79D6B5"/>
+          </svg>`,
+				iconSize: [34, 34],
+				iconAnchor: [17, 17]
+			});
+
+			const marker = L.marker([0, 0], { icon: issIcon }).addTo(map);
+			const trail = L.polyline([], { color: '#79D6B5', weight: 2, opacity: .85 }).addTo(map);
+
+			// 20-minute ground-track prediction (dashed, same green)
+			const prediction = L.polyline([], { color: '#79D6B5', weight: 2, opacity: .55, dashArray: '6,8' }).addTo(map);
+
+			// UI helpers
+			const $ = id => document.getElementById(id);
+			const fmtLat = (n, p = 2) => `${Math.abs(n).toFixed(p)}°${n >= 0 ? 'N' : 'S'}`;
+			const fmtLon = (n, p = 2) => `${Math.abs(n).toFixed(p)}°${n >= 0 ? 'E' : 'W'}`;
+
+			async function fetchISS() {
+				const r = await fetch('https://api.wheretheiss.at/v1/satellites/25544', { cache: 'no-store' });
+				if (!r.ok) throw new Error('ISS API error');
+				const d = await r.json();
+				return {
+					lat: d.latitude, lon: d.longitude,
+					alt: d.altitude, vel: d.velocity,
+					ts: new Date()
+				};
+			}
+
+			// Query next ~20 minutes at 30s cadence (uses where-the-iss positions endpoint)
+			async function fetchPrediction(baseTsMs) {
+				const base = Math.floor(baseTsMs / 1000);
+				const step = 30;                 // seconds
+				const count = 40;                // 40 * 30s = 1200s = 20m
+				const stamps = [];
+				for (let i = 1; i <= count; i++) stamps.push(base + i * step);
+				const url = `https://api.wheretheiss.at/v1/satellites/25544/positions?timestamps=${stamps.join(',')}&units=kilometers`;
+				const r = await fetch(url, { cache: 'no-store' });
+				if (!r.ok) throw new Error('Prediction API error');
+				const arr = await r.json();
+				return arr.map(p => [p.latitude, p.longitude]);
+			}
+
+			// Poll with graceful backoff
+			let fail = 0;
+			let first = true;
+			let lastPredUpdate = 0;
+
+			async function tick() {
+				try {
+					const p = await fetchISS();
+					const ll = [p.lat, p.lon];
+
+					marker.setLatLng(ll);
+
+					const pts = trail.getLatLngs();
+					pts.push(ll);
+					if (pts.length > 240) pts.shift(); // keep ~20 min @ 5s
+					trail.setLatLngs(pts);
+
+					if (first) { map.setView(ll, 3); first = false; }
+
+					$('lat').textContent = fmtLat(p.lat);
+					$('lon').textContent = fmtLon(p.lon);
+					$('alt').textContent = p.alt.toFixed(1);
+					$('vel').textContent = Math.round(p.vel);
+					$('iss-updated').textContent = p.ts.toLocaleTimeString();
+
+					// Refresh prediction at most once per minute
+					const now = Date.now();
+					if (now - lastPredUpdate > 60_000) {
+						lastPredUpdate = now;
+						try {
+							const predPts = await fetchPrediction(now);
+							prediction.setLatLngs(predPts);
+						} catch { /* silently ignore prediction hiccups */ }
+					}
+
+					fail = 0;
+				} catch (e) {
+					fail = Math.min(fail + 1, 6); // cap backoff
+				} finally {
+					// 5s base, multiply by (1..6) on failures
+					setTimeout(tick, 5000 * Math.max(1, fail));
+				}
+			}
+			tick();
+		})();
+	</script>
 </body>
+
+</html>
