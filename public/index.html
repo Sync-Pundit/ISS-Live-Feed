@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>ISS Live Console | Sync_Pundit</title>
+	<meta name="description" content="Live ISS stream, orbital map, station telemetry, and mission context." />
+	<link rel="icon" href="/assets/favicon.png" />
+	<meta property="og:title" content="ISS Live Console" />
+	<meta property="og:description" content="Self-healing live ISS stream with orbital telemetry and mission context." />
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="https://iss.syncpundit.io/" />
+	<meta property="og:image" content="/assets/favicon.png" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin />
+	<link rel="preconnect" href="https://i.ytimg.com" crossorigin />
+	<link rel="preconnect" href="https://unpkg.com" crossorigin />
+	<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin />
+	<link rel="stylesheet" href="/assets/css/app.css" />
+</head>
+
+<body>
+	<div class="orbital-bg" aria-hidden="true"></div>
+	<div class="console-shell">
+		<header class="mission-header">
+			<div class="mission-title-block">
+				<p class="eyebrow">Low Earth Orbit / Public Signal</p>
+				<h1>ISS Live Console</h1>
+				<p class="mission-copy">Watch the station, track the orbit, and read the live public telemetry from one cockpit.</p>
+			</div>
+			<div class="mission-status" aria-label="System status">
+				<span class="status-pill" id="stream-status"><span class="pulse"></span>Stream: booting</span>
+				<span class="status-pill muted" id="utc-clock">UTC --:--:--</span>
+				<button class="control-button" type="button" id="refresh-stream">Refresh stream</button>
+			</div>
+		</header>
+
+		<main class="cockpit-grid">
+			<section class="panel live-panel" aria-labelledby="live-title">
+				<div class="panel-head">
+					<div>
+						<p class="panel-kicker">Live Window</p>
+						<h2 id="live-title">Station view</h2>
+					</div>
+					<div class="meta-stack">
+						<span id="stream-source">source pending</span>
+						<span id="stream-checked">not checked</span>
+					</div>
+				</div>
+				<div class="video-frame" id="video-frame">
+					<div id="yt-player" class="yt-player" role="img" aria-label="ISS live video loading"></div>
+					<div class="video-overlay" id="video-overlay"><span class="loader-dot"></span><span>Acquiring live signal</span></div>
+				</div>
+				<div class="stream-details">
+					<strong id="stream-title">ISS stream fallback standing by</strong>
+					<p id="stream-note">The console will switch streams automatically when Cloudflare stream discovery is configured.</p>
+				</div>
+			</section>
+
+			<aside class="panel telemetry-panel" aria-labelledby="telemetry-title">
+				<div class="panel-head compact">
+					<div>
+						<p class="panel-kicker">Telemetry Rail</p>
+						<h2 id="telemetry-title">Station state</h2>
+					</div>
+					<span class="freshness" id="telemetry-freshness">waiting</span>
+				</div>
+				<div class="telemetry-grid">
+					<div class="metric"><span>Latitude</span><strong id="lat">--</strong></div>
+					<div class="metric"><span>Longitude</span><strong id="lon">--</strong></div>
+					<div class="metric"><span>Altitude</span><strong id="alt">--</strong></div>
+					<div class="metric"><span>Velocity</span><strong id="vel">--</strong></div>
+					<div class="metric"><span>Visibility</span><strong id="visibility">--</strong></div>
+					<div class="metric"><span>Footprint</span><strong id="footprint">--</strong></div>
+				</div>
+				<div class="orbit-events">
+					<div><span>Next transition</span><strong id="next-transition">--</strong></div>
+					<div><span>Ground track</span><strong id="ground-region">Resolving</strong></div>
+					<div><span>TLE epoch</span><strong id="tle-epoch">Pending</strong></div>
+				</div>
+			</aside>
+
+			<section class="panel map-panel" aria-labelledby="map-title">
+				<div class="panel-head">
+					<div>
+						<p class="panel-kicker">Orbital Map</p>
+						<h2 id="map-title">Live ground track</h2>
+					</div>
+					<div class="map-controls" aria-label="Map layers">
+						<label><input type="checkbox" id="toggle-terminator" checked /> Day/night</label>
+						<label><input type="checkbox" id="toggle-footprint" checked /> Footprint</label>
+						<label><input type="checkbox" id="toggle-events" checked /> Events</label>
+					</div>
+				</div>
+				<div id="iss-map" class="map-shell"></div>
+				<div class="map-readout">
+					<span id="map-updated">Map waiting for first fix</span>
+					<span id="path-confidence">Forecast: pending TLE</span>
+				</div>
+			</section>
+
+			<section class="panel context-panel" aria-labelledby="context-title">
+				<div class="panel-head">
+					<div>
+						<p class="panel-kicker">Mission Context</p>
+						<h2 id="context-title">Orbit intelligence</h2>
+					</div>
+				</div>
+				<div class="context-grid">
+					<article class="context-card"><span>Docked vehicles</span><strong id="docked-summary">Pending data source</strong><p id="docked-list">Configure a docked-vehicles endpoint or curated JSON later.</p></article>
+					<article class="context-card"><span>Space weather</span><strong id="space-weather-summary">Loading</strong><p id="space-weather-detail">Kp and solar X-ray state will appear here.</p></article>
+					<article class="context-card"><span>Earth events</span><strong id="earth-events-summary">Loading</strong><p id="earth-events-detail">NASA EONET events near the orbital path.</p></article>
+					<article class="context-card action-card"><span>Local pass</span><strong id="pass-summary">Optional</strong><p>Use browser location to estimate upcoming visible passes in a later wave.</p><button class="control-button ghost" type="button" id="local-pass">Enable location</button></article>
+				</div>
+			</section>
+		</main>
+	</div>
+
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin></script>
+	<script src="https://unpkg.com/leaflet.terminator@0.4.0/L.Terminator.js"></script>
+	<script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js"></script>
+	<script src="https://www.youtube.com/iframe_api"></script>
+	<script type="module" src="/assets/js/app.js"></script>
+</body>
+
+</html>
