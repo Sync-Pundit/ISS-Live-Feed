@@ -5,7 +5,7 @@ function fallback(env, note = 'YouTube discovery not configured; using fallback 
 		? `https://www.youtube-nocookie.com/embed/live_stream?channel=${encodeURIComponent(env.YOUTUBE_FALLBACK_CHANNEL_ID)}&autoplay=1&mute=1&rel=0`
 		: null;
 	return {
-		videoId: env.YOUTUBE_FALLBACK_VIDEO_ID || null,
+		videoId: embedUrl ? null : env.YOUTUBE_FALLBACK_VIDEO_ID || null,
 		embedUrl,
 		title: env.YOUTUBE_FALLBACK_TITLE || 'ISS live stream fallback',
 		source: 'fallback',
