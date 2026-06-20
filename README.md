@@ -51,13 +51,13 @@ STREAM_CACHE_SECONDS=180
 Any static server can render the UI:
 
 ```bash
-python3 -m http.server 7777
+python3 -m http.server 5000
 ```
 
 Then open:
 
 ```text
-http://[::1]:7777/
+http://127.0.0.1:5000/
 ```
 
 Without Cloudflare Functions, stream discovery and TLE/context endpoints fall back to degraded states. ISS state still tries a direct browser fetch to `wheretheiss.at`.
