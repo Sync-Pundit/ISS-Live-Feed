@@ -16,12 +16,19 @@ function updateClock() {
 async function refreshTle() {
 	state.tle = await getTle();
 	if (state.tle?.epoch) document.getElementById('tle-epoch').textContent = state.tle.epoch;
+	if (state.latestIss) updateMap(state.latestIss, state.tle);
 }
 
 async function refreshContext() {
 	const weather = await getSpaceWeather();
 	renderSpaceWeather(weather);
 	renderEvents(weather.events || []);
+}
+
+function runBackground(task, label) {
+	Promise.resolve()
+		.then(task)
+		.catch(error => console.warn(`${label} failed`, error));
 }
 
 async function refreshIssLoop() {
@@ -63,10 +70,12 @@ async function boot() {
 	setInterval(updateClock, 1000);
 	initMap();
 	initLocalPassStub();
-	await Promise.allSettled([initStream(), refreshTle(), refreshContext()]);
+	refreshIssLoop();
+	runBackground(initStream, 'stream initialisation');
+	runBackground(refreshTle, 'TLE refresh');
+	runBackground(refreshContext, 'mission context refresh');
 	setInterval(refreshTle, 2 * 60 * 60 * 1000);
 	setInterval(refreshContext, 10 * 60 * 1000);
-	refreshIssLoop();
 }
 
 boot();

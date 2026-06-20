@@ -42,6 +42,7 @@ export function initMap() {
 	forecastTrail = window.L.polyline([], { color: '#62e7ff', weight: 2, opacity: .72, dashArray: '8,10' }).addTo(map);
 	footprintLayer = window.L.polygon([], { color: '#ffd166', weight: 1, opacity: .5, fillColor: '#ffd166', fillOpacity: .08 }).addTo(map);
 	eventLayer = window.L.layerGroup().addTo(map);
+	terminatorLayer = window.L.layerGroup().addTo(map);
 	refreshTerminator();
 	setInterval(refreshTerminator, 60_000);
 
@@ -59,11 +60,30 @@ export function initMap() {
 }
 
 function refreshTerminator() {
-	if (!window.L?.terminator || !map) return;
+	if (!window.SunCalc || !terminatorLayer || !map) return;
 	const checked = document.getElementById('toggle-terminator')?.checked !== false;
-	if (terminatorLayer) map.removeLayer(terminatorLayer);
-	terminatorLayer = window.L.terminator({ fillOpacity: .32, color: '#000', fillColor: '#000' });
-	if (checked) terminatorLayer.addTo(map);
+	terminatorLayer.clearLayers();
+	if (!checked) return;
+
+	const now = new Date();
+	const step = 10;
+	for (let lat = -90; lat < 90; lat += step) {
+		for (let lon = -180; lon < 180; lon += step) {
+			const centerLat = lat + step / 2;
+			const centerLon = lon + step / 2;
+			const altitude = window.SunCalc.getPosition(now, centerLat, centerLon).altitude;
+			if (altitude >= 0) continue;
+			window.L.rectangle(
+				[[lat, lon], [lat + step, lon + step]],
+				{
+					stroke: false,
+					fillColor: '#03080b',
+					fillOpacity: Math.min(0.34, 0.14 + Math.abs(altitude) / 4),
+					interactive: false
+				}
+			).addTo(terminatorLayer);
+		}
+	}
 }
 
 export function updateMap(state, tle) {

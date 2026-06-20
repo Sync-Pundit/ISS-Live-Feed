@@ -96,7 +96,10 @@ async function refreshStream(reason = 'Refreshing stream metadata') {
 	updateStreamUi(stream);
 	const mode = stream.status === 'live' ? 'good' : stream.degraded || stream.status === 'fallback' ? 'warn' : 'muted';
 	setStatus(`Stream: ${stream.status || 'fallback'}`, mode);
-	if (stream.videoId) {
+	if (stream.status === 'fallback' && stream.embedUrl) {
+		loadEmbedUrl(stream.embedUrl);
+		setOverlay('Fallback channel signal loaded', false);
+	} else if (stream.videoId) {
 		loadVideo(stream.videoId);
 		setOverlay(stream.status === 'live' ? 'Live signal acquired' : 'Fallback signal loaded', false);
 	} else if (stream.embedUrl) {
