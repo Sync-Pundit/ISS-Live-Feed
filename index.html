@@ -4,660 +4,126 @@
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width,initial-scale=1" />
-	<title>ISS Live Feed 👽😎🔱🔥</title>
-	<meta name="description"
-		content="Live view of Earth from the International Space Station (HDEV), plus live position." />
+	<title>ISS Live Console | Sync_Pundit</title>
+	<meta name="description" content="Live ISS stream, orbital map, station telemetry, and mission context." />
 	<link rel="icon" href="/assets/favicon.png" />
-
-	<!-- Social -->
-	<meta property="og:title" content="ISS Live Feed" />
-	<meta property="og:description" content="Live view of Earth from the ISS (HDEV) with live position map." />
+	<meta property="og:title" content="ISS Live Console" />
+	<meta property="og:description" content="Self-healing live ISS stream with orbital telemetry and mission context." />
 	<meta property="og:type" content="website" />
-	<meta property="og:url" content="https://iss.syncpundit.com/" />
-	<meta property="og:image" content="/assets/og-iss.jpg" />
+	<meta property="og:url" content="https://iss.syncpundit.io/" />
+	<meta property="og:image" content="/assets/favicon.png" />
 	<meta name="twitter:card" content="summary_large_image" />
-
-	<!-- Performance -->
 	<link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin />
 	<link rel="preconnect" href="https://i.ytimg.com" crossorigin />
-	<link rel="preconnect" href="https://api.wheretheiss.at" />
-
-	<!-- Leaflet -->
-	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin>
-	<!-- Day/Night terminator plugin -->
-	<script src="https://unpkg.com/leaflet.terminator@0.4.0/L.Terminator.js" defer></script>
-	<script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
-
-
-	<style>
-		:root {
-			--bg: #0b0f14;
-			--card: #0f151b;
-			--text: #e8f1f4;
-			--muted: #8aa0ad;
-			--accent: #79D6B5;
-			--ring: rgba(121, 214, 181, .35);
-			--radius: 16px;
-			--shadow: 0 12px 28px rgba(0, 0, 0, .35);
-		}
-
-		* {
-			box-sizing: border-box
-		}
-
-		html,
-		body {
-			height: 100%
-		}
-
-		body {
-			margin: 0;
-			background: radial-gradient(100% 60% at 50% 0%, rgba(121, 214, 181, .12), transparent 60%), var(--bg);
-			color: var(--text);
-			font: 500 16px/1.55 system-ui, -apple-system, Segoe UI, Roboto, Arial;
-		}
-
-		.wrap {
-			max-width: 1100px;
-			margin: 0 auto;
-			padding: 20px
-		}
-
-		header {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			margin-bottom: 14px
-		}
-
-		.title {
-			font-size: clamp(1.3rem, 2.5vw, 2rem);
-			font-weight: 800
-		}
-
-		.muted {
-			color: var(--muted)
-		}
-
-		.card {
-			background: var(--card);
-			border-radius: var(--radius);
-			box-shadow: var(--shadow);
-			padding: 14px;
-			border: 1px solid rgba(121, 214, 181, .15)
-		}
-
-		.video-shell {
-			position: relative;
-			border-radius: 14px;
-			overflow: hidden;
-			background: #000
-		}
-
-		.video-shell::before {
-			content: "";
-			display: block;
-			aspect-ratio: 16/9;
-			width: 100%
-		}
-
-		.video-shell>iframe {
-			position: absolute;
-			inset: 0;
-			width: 100%;
-			height: 100%;
-			border: 0;
-			border-radius: 14px
-		}
-
-		.map-shell {
-			border-radius: 14px;
-			overflow: hidden;
-			height: 280px;
-			background: #0b0f14
-		}
-
-		.leaflet-container {
-			background: #0b0f14
-		}
-
-		.row {
-			display: flex;
-			gap: 10px;
-			flex-wrap: wrap;
-			margin-top: 10px;
-			align-items: center
-		}
-
-		.btn {
-			padding: 10px 14px;
-			border-radius: 10px;
-			border: 1px solid rgba(121, 214, 181, .25);
-			background: #0f1b18;
-			color: var(--text);
-			cursor: pointer
-		}
-
-		.btn.primary {
-			background: linear-gradient(90deg, #2e7d6b, var(--accent));
-			border-color: transparent;
-			font-weight: 700
-		}
-
-		.btn:focus {
-			outline: 2px solid var(--ring);
-			outline-offset: 2px
-		}
-
-		.footer {
-			margin: 16px 0 6px;
-			text-align: center;
-			color: var(--muted);
-			font-size: 14px
-		}
-
-		a {
-			color: var(--accent);
-			text-decoration: underline
-		}
-
-		/* Badges / chips */
-		.badges {
-			display: flex;
-			gap: 8px;
-			flex-wrap: wrap;
-			align-items: center
-		}
-
-		.badge {
-			padding: .25rem .55rem;
-			border-radius: 999px;
-			border: 1px solid rgba(121, 214, 181, .28);
-			background: linear-gradient(180deg, rgba(121, 214, 181, .10), rgba(46, 125, 107, .08));
-			font-size: .9rem;
-			color: var(--text);
-			white-space: nowrap
-		}
-
-		.badge.muted {
-			color: var(--muted)
-		}
-
-		/* Starfield canvas behind the map */
-		.starfield {
-			position: absolute;
-			inset: 0;
-			z-index: 0;
-			pointer-events: none;
-			opacity: .35;
-			mix-blend-mode: screen;
-		}
-
-		/* Layer toggle row */
-		.layer-row {
-			display: flex;
-			gap: 10px;
-			align-items: center;
-			margin-top: 10px;
-			flex-wrap: wrap
-		}
-
-		.toggle {
-			display: inline-flex;
-			gap: 6px;
-			align-items: center;
-			font-size: .9rem;
-			color: var(--muted)
-		}
-
-		.toggle input {
-			accent-color: var(--accent)
-		}
-
-		/* Historic trail is just lower opacity */
-		.leaflet-container .iss-history {
-			opacity: .35
-		}
-
-		/* Countdown pill */
-		.countdown {
-			display: inline-flex;
-			align-items: center;
-			gap: 8px;
-			padding: 6px 10px;
-			border-radius: 999px;
-			border: 1px solid rgba(121, 214, 181, .25);
-			background: linear-gradient(180deg, rgba(121, 214, 181, .10), rgba(46, 125, 107, .08));
-			font-size: 14px;
-			color: var(--text);
-		}
-
-		/* Docked vehicles row */
-		.docked {
-			display: flex;
-			gap: 8px;
-			flex-wrap: wrap;
-			margin-top: 10px
-		}
-
-		.badge {
-			padding: 4px 8px;
-			border-radius: 999px;
-			font-size: 12px;
-			border: 1px solid rgba(121, 214, 181, .25);
-			background: #0f1b18;
-			color: var(--text)
-		}
-
-		.badge.soyuz {
-			border-color: #8bc34a
-		}
-
-		.badge.dragon {
-			border-color: #4fc3f7
-		}
-
-		.badge.progress {
-			border-color: #ffb74d
-		}
-
-		.badge.htv {
-			border-color: #b39ddb
-		}
-
-		.badge.cygnus {
-			border-color: #ffd54f
-		}
-
-		/* Trail styling */
-		.trail-old {
-			color: #79D6B5;
-			opacity: .25
-		}
-
-		.trail-older {
-			color: #79D6B5;
-			opacity: .12
-		}
-
-		/* Layer toggle control nudge on mobile */
-		.leaflet-control-layers {
-			border-radius: 10px;
-			overflow: hidden
-		}
-
-		/* make starfield work inside the map container */
-		.map-shell {
-			position: relative;
-		}
-	</style>
+	<link rel="preconnect" href="https://unpkg.com" crossorigin />
+	<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin />
+	<link rel="stylesheet" href="/assets/css/app.css" />
 </head>
 
 <body>
-	<div class="wrap">
-		<header>
-			<div>
-				<div class="title">ISS Live Feed</div>
-				<div class="muted">High-definition view of Earth from the Station.</div>
+	<div class="orbital-bg" aria-hidden="true"></div>
+	<div class="console-shell">
+		<header class="mission-header">
+			<div class="mission-title-block">
+				<p class="eyebrow">Low Earth Orbit / Public Signal</p>
+				<h1>ISS Live Console</h1>
+				<p class="mission-copy">Watch the station, track the orbit, and read the live public telemetry from one cockpit.</p>
 			</div>
-			<button id="open-chat" class="btn" type="button">Open chat</button>
+			<div class="mission-status" aria-label="System status">
+				<span class="status-pill" id="stream-status"><span class="pulse"></span>Stream: booting</span>
+				<span class="status-pill muted" id="utc-clock">UTC --:--:--</span>
+				<button class="control-button" type="button" id="refresh-stream">Refresh stream</button>
+			</div>
 		</header>
 
-		<section class="card">
-			<div class="video-shell">
-				<iframe id="iss-yt" loading="lazy" title="ISS Live HD Earth View"
-					src="https://www.youtube-nocookie.com/embed/DIgkvm2nmHc?autoplay=1&mute=1&rel=0"
-					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-					referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
-				</iframe>
-			</div>
-
-			<div id="fallback" class="muted" style="display:none;margin-top:10px;">
-				Stream looks unavailable. Try the mirror:
-				<a href="https://piped.syncpundit.io/embed/DIgkvm2nmHc" target="_blank" rel="noopener">Open mirror</a>
-			</div>
-
-			<div class="row">
-				<button id="pip" class="btn" type="button"
-					title="Tip: use the video menu or your browser shortcut for PiP">Picture-in-Picture</button>
-				<button id="support" class="btn primary" type="button">Buy me a pizza 😅</button>
-			</div>
-		</section>
-
-		<section class="card" style="margin-top:14px">
-			<header style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-				<strong>ISS position</strong>
-				<div class="badges">
-					<span class="badge muted" id="daynight-state">—</span>
-					<span class="badge" id="countdown">Next transition: —</span>
-					<span class="badge muted" id="iss-updated">—</span>
+		<main class="cockpit-grid">
+			<section class="panel live-panel" aria-labelledby="live-title">
+				<div class="panel-head">
+					<div>
+						<p class="panel-kicker">Live Window</p>
+						<h2 id="live-title">Station view</h2>
+					</div>
+					<div class="meta-stack">
+						<span id="stream-source">source pending</span>
+						<span id="stream-checked">not checked</span>
+					</div>
 				</div>
-			</header>
-
-
-			<div id="iss-map" class="map-shell"></div>
-
-			<div class="row" style="margin-top:12px">
-				<div class="muted">
-					Lat: <span id="lat">–</span> • Lon: <span id="lon">–</span> • Alt: <span id="alt">–</span> km • Vel:
-					<span id="vel">–</span> km/h
+				<div class="video-frame" id="video-frame">
+					<div id="yt-player" class="yt-player" role="img" aria-label="ISS live video loading"></div>
+					<div class="video-overlay" id="video-overlay"><span class="loader-dot"></span><span>Acquiring live signal</span></div>
 				</div>
-			</div>
-
-			<div class="row" style="margin-top:8px;justify-content:space-between;gap:10px;align-items:center;">
-				<div class="badges" id="docked-badges" title="Docked spacecraft"></div>
-				<div class="layer-row">
-					<label class="toggle"><input type="checkbox" id="toggle-stars" checked> Stars</label>
-					<label class="toggle"><input type="checkbox" id="toggle-clouds"> Clouds</label>
+				<div class="stream-details">
+					<strong id="stream-title">ISS stream fallback standing by</strong>
+					<p id="stream-note">The console will switch streams automatically when Cloudflare stream discovery is configured.</p>
 				</div>
-			</div>
+			</section>
 
-		</section>
+			<aside class="panel telemetry-panel" aria-labelledby="telemetry-title">
+				<div class="panel-head compact">
+					<div>
+						<p class="panel-kicker">Telemetry Rail</p>
+						<h2 id="telemetry-title">Station state</h2>
+					</div>
+					<span class="freshness" id="telemetry-freshness">waiting</span>
+				</div>
+				<div class="telemetry-grid">
+					<div class="metric"><span>Latitude</span><strong id="lat">--</strong></div>
+					<div class="metric"><span>Longitude</span><strong id="lon">--</strong></div>
+					<div class="metric"><span>Altitude</span><strong id="alt">--</strong></div>
+					<div class="metric"><span>Velocity</span><strong id="vel">--</strong></div>
+					<div class="metric"><span>Visibility</span><strong id="visibility">--</strong></div>
+					<div class="metric"><span>Footprint</span><strong id="footprint">--</strong></div>
+				</div>
+				<div class="orbit-events">
+					<div><span>Next transition</span><strong id="next-transition">--</strong></div>
+					<div><span>Ground track</span><strong id="ground-region">Resolving</strong></div>
+					<div><span>TLE epoch</span><strong id="tle-epoch">Pending</strong></div>
+				</div>
+			</aside>
 
-		<div class="footer">Tip: use your browser’s video menu for Picture-in-Picture.</div>
+			<section class="panel map-panel" aria-labelledby="map-title">
+				<div class="panel-head">
+					<div>
+						<p class="panel-kicker">Orbital Map</p>
+						<h2 id="map-title">Live ground track</h2>
+					</div>
+					<div class="map-controls" aria-label="Map layers">
+						<label><input type="checkbox" id="toggle-terminator" checked /> Day/night</label>
+						<label><input type="checkbox" id="toggle-footprint" checked /> Footprint</label>
+						<label><input type="checkbox" id="toggle-events" checked /> Events</label>
+					</div>
+				</div>
+				<div id="iss-map" class="map-shell"></div>
+				<div class="map-readout">
+					<span id="map-updated">Map waiting for first fix</span>
+					<span id="path-confidence">Forecast: pending TLE</span>
+				</div>
+			</section>
+
+			<section class="panel context-panel" aria-labelledby="context-title">
+				<div class="panel-head">
+					<div>
+						<p class="panel-kicker">Mission Context</p>
+						<h2 id="context-title">Orbit intelligence</h2>
+					</div>
+				</div>
+				<div class="context-grid">
+					<article class="context-card"><span>Docked vehicles</span><strong id="docked-summary">Pending data source</strong><p id="docked-list">Configure a docked-vehicles endpoint or curated JSON later.</p></article>
+					<article class="context-card"><span>Space weather</span><strong id="space-weather-summary">Loading</strong><p id="space-weather-detail">Kp and solar X-ray state will appear here.</p></article>
+					<article class="context-card"><span>Earth events</span><strong id="earth-events-summary">Loading</strong><p id="earth-events-detail">NASA EONET events near the orbital path.</p></article>
+					<article class="context-card action-card"><span>Local pass</span><strong id="pass-summary">Optional</strong><p>Use browser location to estimate upcoming visible passes in a later wave.</p><button class="control-button ghost" type="button" id="local-pass">Enable location</button></article>
+				</div>
+			</section>
+		</main>
 	</div>
 
-	<!-- Defer heavy third-party until clicked -->
-	<script>
-		document.getElementById('open-chat').addEventListener('click', () => {
-			const s = document.createElement('script');
-			s.src = 'https://cdn.jsdelivr.net/npm/@widgetbot/crate@3';
-			s.onload = () => new Crate({ server: '741328290996027454', channel: '747563756732678175' });
-			document.body.appendChild(s);
-		});
-
-		document.getElementById('support').addEventListener('click', () => {
-			const s = document.createElement('script');
-			s.dataset.name = 'BMC-Widget';
-			s.dataset.cfasync = 'false';
-			s.src = 'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js';
-			s.setAttribute('data-id', 'Sync_Pundit');
-			s.setAttribute('data-message', 'Buy me a pizza😅');
-			s.setAttribute('data-color', '#79D6B5');
-			s.setAttribute('data-position', 'left');
-			s.setAttribute('data-x_margin', '22');
-			s.setAttribute('data-y_margin', '22');
-			document.body.appendChild(s);
-		});
-
-		// PiP note (YT iframes block programmatic PiP)
-		document.getElementById('pip').addEventListener('click', () => {
-			alert('Tip: right-click the video and choose Picture-in-Picture (or use your browser shortcut).');
-		});
-
-		// Simple error fallback (fires when iframe fails to load)
-		document.getElementById('iss-yt').addEventListener('error', () => {
-			document.getElementById('fallback').style.display = 'block';
-		});
-	</script>
-
-	<!-- Leaflet core -->
 	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin></script>
-	<script>
-		(async function () {
-			// ---------- Base map & layers ----------
-			const dark = L.tileLayer(
-				'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
-				{ subdomains: 'abcd', maxZoom: 7 }
-			);
-			const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 7 });
-
-			const map = L.map('iss-map', {
-				worldCopyJump: true,
-				zoomControl: false,
-				attributionControl: false,
-				layers: [dark]
-			}).setView([0, 0], 3);
-
-			// Optional clouds layer (OpenWeatherMap)
-			const OWM_KEY = ''; // <-- add your OWM key to enable
-			const clouds = OWM_KEY
-				? L.tileLayer(`https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=${OWM_KEY}`, { opacity: .55, maxZoom: 7 })
-				: null;
-
-			const baseMaps = { "Dark (spacey)": dark, "OSM": osm };
-			const overlays = {};
-			if (clouds) overlays["Clouds (OWM)"] = clouds;
-
-			L.control.layers(baseMaps, overlays, { position: 'topright' }).addTo(map);
-
-			// ---------- Terminator (day/night) ----------
-			let termLayer = null;
-			function refreshTerminator() {
-				if (!('terminator' in L)) return;
-				const t = L.terminator({ fillOpacity: .35, color: '#000', fillColor: '#000' });
-				if (termLayer) map.removeLayer(termLayer);
-				termLayer = t.addTo(map);
-			}
-			// wait for plugin if needed, then refresh every minute
-			const termWait = setInterval(() => {
-				if ('terminator' in L) {
-					clearInterval(termWait);
-					refreshTerminator();
-					setInterval(refreshTerminator, 60_000);
-				}
-			}, 100);
-
-			// ---------- Starfield (canvas overlay) ----------
-			const starsToggle = document.getElementById('toggle-stars');
-			let starsCanvas = null;
-			function drawStars() {
-				if (starsCanvas) return; // already on
-				starsCanvas = document.createElement('canvas');
-				starsCanvas.className = 'starfield';
-				const host = document.getElementById('iss-map');
-				host.appendChild(starsCanvas);
-
-				function paint() {
-					const r = host.getBoundingClientRect();
-					starsCanvas.width = r.width;
-					starsCanvas.height = r.height;
-					const ctx = starsCanvas.getContext('2d');
-					ctx.clearRect(0, 0, r.width, r.height);
-					// density scales with area; cap to keep light
-					const count = Math.min(350, Math.floor((r.width * r.height) / 8000));
-					for (let i = 0; i < count; i++) {
-						const x = Math.random() * r.width;
-						const y = Math.random() * r.height;
-						const size = Math.random() * 1.4 + 0.3;
-						const alpha = Math.random() * 0.7 + 0.2;
-						ctx.fillStyle = `rgba(255,255,255,${alpha})`;
-						ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2); ctx.fill();
-					}
-				}
-				paint();
-				// repaint on resize
-				const ro = new ResizeObserver(paint); ro.observe(host);
-				starsCanvas._ro = ro;
-			}
-			function removeStars() {
-				if (!starsCanvas) return;
-				starsCanvas._ro?.disconnect?.();
-				starsCanvas.remove();
-				starsCanvas = null;
-			}
-			// init stars on first load if checked
-			if (starsToggle && starsToggle.checked) drawStars();
-			starsToggle?.addEventListener('change', (e) => e.target.checked ? drawStars() : removeStars());
-
-			// Clouds toggle (if key provided)
-			const cloudsToggle = document.getElementById('toggle-clouds');
-			if (cloudsToggle) {
-				cloudsToggle.disabled = !clouds; // no key, disable control
-				cloudsToggle.addEventListener('change', (e) => {
-					if (!clouds) return;
-					e.target.checked ? clouds.addTo(map) : map.removeLayer(clouds);
-				});
-			}
-
-			// ---------- ISS marker, trails & forecast ----------
-			const issIcon = L.divIcon({
-				className: 'iss-icon',
-				html: `<svg width="34" height="34" viewBox="0 0 24 24" fill="none" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))">
-            <circle cx="12" cy="12" r="10" stroke="#79D6B5" stroke-width="1.5" opacity=".75"/>
-            <path d="M3 12h18M12 3v18" stroke="#79D6B5" stroke-width="1.2" opacity=".35"/>
-            <circle cx="12" cy="12" r="2.8" fill="#79D6B5"/>
-          </svg>`,
-				iconSize: [34, 34], iconAnchor: [17, 17]
-			});
-			const marker = L.marker([0, 0], { icon: issIcon }).addTo(map);
-
-			let liveTrail = L.polyline([], { color: '#79D6B5', weight: 2, opacity: .9 }).addTo(map);
-			const oldTrails = [
-				L.polyline([], { color: '#79D6B5', weight: 2, opacity: .25 }),
-				L.polyline([], { color: '#79D6B5', weight: 2, opacity: .12 })
-			].map(t => t.addTo(map));
-
-			let forecastTrail = L.polyline([], { color: '#79D6B5', weight: 2, opacity: .65, dashArray: '6,8' }).addTo(map);
-
-			// ---------- Utilities ----------
-			const $ = id => document.getElementById(id);
-			const fmtLat = (n, p = 2) => `${Math.abs(n).toFixed(p)}°${n >= 0 ? 'N' : 'S'}`;
-			const fmtLon = (n, p = 2) => `${Math.abs(n).toFixed(p)}°${n >= 0 ? 'E' : 'W'}`;
-
-			async function fetchISS() {
-				const r = await fetch('https://api.wheretheiss.at/v1/satellites/25544', { cache: 'no-store' });
-				if (!r.ok) throw new Error('ISS API error');
-				const d = await r.json();
-				return { lat: d.latitude, lon: d.longitude, alt: d.altitude, vel: d.velocity, ts: new Date() };
-			}
-
-			// split trail at antimeridian
-			function shouldSplit(prev, curr) {
-				if (!prev) return false;
-				return Math.abs(curr.lon - prev.lon) > 300;
-			}
-			function rollTrails() {
-				oldTrails[1].setLatLngs(oldTrails[0].getLatLngs());
-				oldTrails[0].setLatLngs(liveTrail.getLatLngs());
-				liveTrail.setLatLngs([]);
-			}
-
-			// quick forecast (swap later for SGP4 if you want perfect precision)
-			function buildForecast(lat, lon, velKmh) {
-				const pts = [];
-				const R = 6371; // km
-				const speed = velKmh || 27600;
-				const dt = 15; // seconds
-				const steps = Math.floor(20 * 60 / dt);
-				let phi = lat * Math.PI / 180, lam = lon * Math.PI / 180;
-				for (let i = 0; i <= steps; i++) {
-					const ds = (speed / 3600) * dt;
-					const dlam = (ds / (R * Math.cos(phi))) * (Math.PI / 180);
-					lam += dlam;
-					let lonDeg = (lam * 180 / Math.PI + 540) % 360 - 180;
-					pts.push([lat, lonDeg]);
-				}
-				return pts;
-			}
-
-			// Day/Night state & countdown
-			function isDay(lat, lon, date = new Date()) {
-				const sun = SunCalc.getPosition(date, lat, lon);
-				return sun.altitude > 0;
-			}
-			function findNextTerminator(lat, lon) {
-				const now = Date.now();
-				const nowIsDay = isDay(lat, lon, new Date(now));
-				let lo = 0, hi = 45 * 60 * 1000;
-				for (let i = 0; i < 24; i++) {
-					const mid = Math.floor((lo + hi) / 2);
-					const t = new Date(now + mid);
-					isDay(lat, lon, t) === nowIsDay ? lo = mid : hi = mid;
-				}
-				return { when: new Date(now + hi), type: nowIsDay ? 'Sunset' : 'Sunrise' };
-			}
-			function renderCountdown(target, label) {
-				const now = new Date();
-				let s = Math.max(0, Math.floor((target - now) / 1000));
-				const h = Math.floor(s / 3600); s %= 3600;
-				const m = Math.floor(s / 60); s %= 60;
-				return `${label} in ${h ? h + ':' : ''}${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-			}
-
-			// Docked vehicles hook (point to your JSON if available)
-			async function fetchDocked() {
-				const url = ''; // e.g. '/api/iss-docked'
-				if (!url) return [];
-				try { const r = await fetch(url, { cache: 'no-store' }); return r.ok ? (await r.json()) : []; }
-				catch { return []; }
-			}
-			function badgeClass(name = '') {
-				const n = name.toLowerCase();
-				if (n.includes('dragon')) return 'dragon';
-				if (n.includes('soyuz')) return 'soyuz';
-				if (n.includes('progress')) return 'progress';
-				if (n.includes('htv')) return 'htv';
-				if (n.includes('cygnus')) return 'cygnus';
-				return '';
-			}
-			async function renderDocked() {
-				const list = await fetchDocked();
-				const wrap = document.getElementById('docked-badges');
-				if (!wrap) return;
-				wrap.innerHTML = list.map(x =>
-					`<span class="badge ${badgeClass(x.vehicle)}">${x.vehicle || 'Vehicle'}${x.agency ? ` — ${x.agency}` : ''}</span>`
-				).join('');
-			}
-
-			// ---------- Main loop ----------
-			let prev = null, first = true, nextTerm = null, termTimer = null, lastPred = 0;
-
-			async function tick() {
-				try {
-					const p = await fetchISS();
-					const ll = [p.lat, p.lon];
-
-					marker.setLatLng(ll);
-
-					if (shouldSplit(prev, p)) rollTrails();
-					const seg = liveTrail.getLatLngs(); seg.push(ll);
-					if (seg.length > 2000) seg.splice(0, seg.length - 2000);
-					liveTrail.setLatLngs(seg);
-
-					if (first) { map.setView(ll, 3); first = false; }
-
-					// UI
-					document.getElementById('lat').textContent = fmtLat(p.lat);
-					document.getElementById('lon').textContent = fmtLon(p.lon);
-					document.getElementById('alt').textContent = p.alt.toFixed(1);
-					document.getElementById('vel').textContent = Math.round(p.vel);
-					document.getElementById('iss-updated').textContent = p.ts.toLocaleTimeString();
-
-					// Day/Night state & countdown
-					const day = isDay(p.lat, p.lon);
-					document.getElementById('daynight-state').textContent = day ? 'Daylight' : 'Night';
-					nextTerm = findNextTerminator(p.lat, p.lon);
-					if (!termTimer) {
-						termTimer = setInterval(() => {
-							if (!nextTerm) return;
-							document.getElementById('countdown').textContent = renderCountdown(nextTerm.when, nextTerm.type);
-							if (Date.now() >= nextTerm.when.getTime()) nextTerm = null;
-						}, 1000);
-					}
-
-					// Forecast refresh (1/min)
-					const now = Date.now();
-					if (now - lastPred > 60_000) {
-						lastPred = now;
-						const pts = buildForecast(p.lat, p.lon, p.vel);
-						forecastTrail.setLatLngs(pts);
-					}
-
-					prev = p;
-				} catch { }
-				finally {
-					setTimeout(tick, 5000);
-				}
-			}
-
-			await renderDocked();
-			setInterval(renderDocked, 60 * 60 * 1000); // hourly
-			tick();
-		})();
-	</script>
-
-
+	<script src="https://unpkg.com/leaflet.terminator@0.4.0/L.Terminator.js"></script>
+	<script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js"></script>
+	<script src="https://www.youtube.com/iframe_api"></script>
+	<script type="module" src="/assets/js/app.js"></script>
 </body>
 
 </html>
