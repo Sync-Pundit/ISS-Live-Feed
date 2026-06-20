@@ -1,10 +1,11 @@
 export function json(data, init = {}) {
+	const { cacheControl = 'public, max-age=30', headers = {}, ...responseInit } = init;
 	return new Response(JSON.stringify(data, null, 2), {
-		...init,
+		...responseInit,
 		headers: {
 			'content-type': 'application/json; charset=utf-8',
-			'cache-control': init.cacheControl || 'public, max-age=30',
-			...(init.headers || {})
+			'cache-control': cacheControl,
+			...headers
 		}
 	});
 }

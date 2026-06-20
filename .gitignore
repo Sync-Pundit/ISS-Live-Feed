@@ -7,4 +7,4 @@ node_modules/
 .dev.vars
 .env
 .DS_Store
-.codex/evidence/**/screenshots/
+.codex/
