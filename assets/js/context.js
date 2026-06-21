@@ -30,7 +30,16 @@ function esc(value) {
 		.replace(/</g, '&lt;')
 		.replace(/>/g, '&gt;')
 		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#39;');
+			.replace(/'/g, '&#39;');
+}
+
+function safeUrl(value, fallback) {
+	try {
+		const url = new URL(value || fallback, window.location.origin);
+		return url.protocol === 'https:' ? url.href : fallback;
+	} catch {
+		return fallback;
+	}
 }
 
 function formatDate(value) {
@@ -88,7 +97,7 @@ function renderDockedDetails(data) {
 		</div>
 		${renderRows([vehicleRows])}
 		<p class="artifact-note">${esc(data?.description || data?.detail || 'Docked vehicle source returned no description.')}</p>
-		<a class="artifact-link" href="${esc(data?.sourceUrl || 'https://www.nasa.gov/international-space-station/space-station-visiting-vehicles/')}" target="_blank" rel="noopener noreferrer">Open source manifest</a>
+		<a class="artifact-link" href="${esc(safeUrl(data?.sourceUrl, 'https://www.nasa.gov/international-space-station/space-station-visiting-vehicles/'))}" target="_blank" rel="noopener noreferrer">Open source manifest</a>
 	`;
 }
 
@@ -235,7 +244,7 @@ export function initContextArtifacts() {
 		if (!Number.isFinite(Number(coords[0])) || !Number.isFinite(Number(coords[1]))) return;
 		document.dispatchEvent(new CustomEvent('mission:event-focus', {
 			detail: {
-				title: selected.title || 'Earth event',
+				title: esc(selected.title || 'Earth event'),
 				lon: Number(coords[0]),
 				lat: Number(coords[1])
 			}
