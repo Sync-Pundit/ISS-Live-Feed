@@ -1,4 +1,5 @@
 import { getDockedVehicles, getIssState, getSpaceWeather, getTle } from './api.js';
+import { initContextArtifacts } from './context.js';
 import { initMap, renderEvents, updateMap } from './map.js';
 import { initStream } from './stream.js';
 import { renderDockedVehicles, renderSpaceWeather, renderTelemetry } from './telemetry.js';
@@ -69,6 +70,7 @@ function initLocalPassStub() {
 async function boot() {
 	updateClock();
 	setInterval(updateClock, 1000);
+	initContextArtifacts();
 	initMap();
 	initLocalPassStub();
 	refreshIssLoop();

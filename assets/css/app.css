@@ -379,10 +379,11 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 	align-content: start;
 	gap: 8px;
 	overflow: hidden;
+	cursor: pointer;
 	background:
 		linear-gradient(145deg, rgba(98, 231, 255, .055), transparent 48%),
 		rgba(5, 12, 17, .72);
-	transition: border-color .18s ease, transform .18s ease, background .18s ease;
+	transition: border-color .18s ease, transform .18s ease, background .18s ease, box-shadow .18s ease;
 }
 .context-card::before {
 	content: "";
@@ -408,6 +409,17 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 .context-card:hover {
 	transform: translateY(-1px);
 	border-color: rgba(98, 231, 255, .34);
+}
+.context-card:focus-visible {
+	outline: 2px solid var(--cyan);
+	outline-offset: 3px;
+}
+.context-card.is-expanded {
+	border-color: rgba(98, 231, 255, .54);
+	box-shadow: inset 0 0 0 1px rgba(98, 231, 255, .08), 0 14px 38px rgba(0, 0, 0, .24);
+}
+.context-card.is-expanded::after {
+	opacity: .6;
 }
 .context-card[data-signal="good"]::before { background: var(--green); box-shadow: 0 0 18px rgba(103, 247, 162, .5); }
 .context-card[data-signal="warn"]::before { background: var(--amber); box-shadow: 0 0 18px rgba(255, 209, 102, .45); }
@@ -500,6 +512,39 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 	min-height: 34px;
 	margin-top: auto;
 }
+
+.context-artifact {
+	position: relative;
+	z-index: 1;
+	margin-top: 12px;
+	padding: 16px;
+	border: 1px solid rgba(98, 231, 255, .24);
+	border-radius: var(--radius-md);
+	background:
+		linear-gradient(135deg, rgba(98, 231, 255, .08), transparent 45%),
+		rgba(4, 10, 14, .84);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04);
+}
+.context-artifact[hidden] { display: none; }
+.artifact-head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 14px;
+	padding-bottom: 12px;
+	border-bottom: 1px solid rgba(103, 228, 255, .14);
+}
+.artifact-head h3 {
+	margin: 0;
+	font-size: clamp(1.3rem, 2.1vw, 2rem);
+	line-height: 1;
+	letter-spacing: -.05em;
+}
+.artifact-body {
+	padding-top: 14px;
+	color: var(--muted);
+}
+.artifact-body p:last-child { margin-bottom: 0; }
 
 @media (max-width: 1050px) {
 	.mission-header { position: static; align-items: flex-start; flex-direction: column; }
@@ -665,6 +710,18 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 	.action-card .control-button {
 		min-height: 28px;
 	}
+	.context-artifact {
+		margin-top: 8px;
+		padding: 12px;
+		border-radius: 14px;
+	}
+	.artifact-head {
+		padding-bottom: 8px;
+	}
+	.artifact-body {
+		padding-top: 10px;
+		font-size: .78rem;
+	}
 }
 
 @media (max-width: 680px) {
@@ -678,6 +735,7 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 	.video-frame { height: auto; aspect-ratio: 16 / 9; }
 	.telemetry-grid,
 	.context-grid { grid-template-columns: 1fr; }
+	.artifact-head { flex-direction: column; }
 	.map-shell { height: 390px; }
 	.map-controls { justify-content: flex-start; }
 }
