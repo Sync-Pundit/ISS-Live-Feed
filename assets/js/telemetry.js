@@ -28,6 +28,15 @@ export function ageLabel(isoOrMs) {
 	return `${Math.round(minutes / 60)}h old`;
 }
 
+function safeUrl(value, fallback) {
+	try {
+		const url = new URL(value || fallback, window.location.origin);
+		return url.protocol === 'https:' ? url.href : fallback;
+	} catch {
+		return fallback;
+	}
+}
+
 export function nextTerminator(lat, lon) {
 	if (!window.SunCalc || !Number.isFinite(lat) || !Number.isFinite(lon)) return null;
 	const isDay = date => window.SunCalc.getPosition(date, lat, lon).altitude > 0;
@@ -112,6 +121,6 @@ export function renderDockedVehicles(data) {
 	summary.textContent = data?.summary || (vehicles.length ? `${vehicles.length} vehicles docked` : 'Source unavailable');
 	detail.textContent = vehicles.length ? vehicles.slice(0, 5).join(' • ') : data?.detail || 'NASA visiting vehicle feed unavailable.';
 	source.textContent = sourceAge;
-	source.href = data?.sourceUrl || 'https://www.nasa.gov/international-space-station/space-station-visiting-vehicles/';
+	source.href = safeUrl(data?.sourceUrl, 'https://www.nasa.gov/international-space-station/space-station-visiting-vehicles/');
 	card.dataset.signal = data?.status === 'ok' ? 'good' : data?.status === 'degraded' ? 'warn' : 'hold';
 }
