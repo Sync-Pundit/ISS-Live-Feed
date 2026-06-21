@@ -24,6 +24,7 @@ async function refreshContext() {
 	const [weather, dockedVehicles] = await Promise.all([getSpaceWeather(), getDockedVehicles()]);
 	updateContextArtifact('docked', dockedVehicles);
 	updateContextArtifact('space-weather', weather);
+	updateContextArtifact('earth-events', weather);
 	renderDockedVehicles(dockedVehicles);
 	renderSpaceWeather(weather);
 	renderEvents(weather.events || []);
@@ -55,6 +56,10 @@ function initLocalPassStub() {
 	document.getElementById('local-pass')?.addEventListener('click', () => {
 		if (!navigator.geolocation) {
 			document.getElementById('pass-summary').textContent = 'Unsupported';
+			updateContextArtifact('local-pass', {
+				state: 'unsupported',
+				detail: 'This browser does not expose geolocation, so local pass estimation cannot run here.'
+			});
 			return;
 		}
 		navigator.geolocation.getCurrentPosition(
@@ -62,8 +67,20 @@ function initLocalPassStub() {
 				const { latitude, longitude } = position.coords;
 				document.getElementById('pass-summary').textContent = 'Location captured';
 				document.querySelector('#pass-summary + p').textContent = `Local pass estimation queued for ${latitude.toFixed(2)}, ${longitude.toFixed(2)}.`;
+				updateContextArtifact('local-pass', {
+					state: 'location captured',
+					latitude,
+					longitude,
+					detail: `Local pass estimation queued for ${latitude.toFixed(2)}, ${longitude.toFixed(2)}.`
+				});
 			},
-			() => { document.getElementById('pass-summary').textContent = 'Location denied'; },
+			() => {
+				document.getElementById('pass-summary').textContent = 'Location denied';
+				updateContextArtifact('local-pass', {
+					state: 'location denied',
+					detail: 'Browser location permission was denied. Pass prediction remains unavailable.'
+				});
+			},
 			{ enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 }
 		);
 	});
@@ -73,6 +90,10 @@ async function boot() {
 	updateClock();
 	setInterval(updateClock, 1000);
 	initContextArtifacts();
+	updateContextArtifact('local-pass', {
+		state: 'optional',
+		detail: 'Use browser location to estimate upcoming visible passes in a later wave.'
+	});
 	initMap();
 	initLocalPassStub();
 	refreshIssLoop();

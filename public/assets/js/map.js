@@ -7,6 +7,7 @@ let forecastTrail;
 let footprintLayer;
 let terminatorLayer;
 let eventLayer;
+let focusLayer;
 let previousFix;
 
 function splitAntimeridian(prev, next) {
@@ -42,9 +43,23 @@ export function initMap() {
 	forecastTrail = window.L.polyline([], { color: '#62e7ff', weight: 2, opacity: .72, dashArray: '8,10' }).addTo(map);
 	footprintLayer = window.L.polygon([], { color: '#ffd166', weight: 1, opacity: .5, fillColor: '#ffd166', fillOpacity: .08 }).addTo(map);
 	eventLayer = window.L.layerGroup().addTo(map);
+	focusLayer = window.L.layerGroup().addTo(map);
 	terminatorLayer = window.L.layerGroup().addTo(map);
 	refreshTerminator();
 	setInterval(refreshTerminator, 60_000);
+	document.addEventListener('mission:event-focus', event => {
+		const { lat, lon, title } = event.detail || {};
+		if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+		focusLayer.clearLayers();
+		window.L.circleMarker([lat, lon], {
+			radius: 10,
+			color: '#ffd166',
+			fillColor: '#ffd166',
+			fillOpacity: .36,
+			weight: 2
+		}).bindTooltip(title || 'Earth event', { permanent: false }).addTo(focusLayer).openTooltip();
+		map.setView([lat, lon], Math.max(map.getZoom(), 4), { animate: true });
+	});
 
 	document.getElementById('toggle-terminator')?.addEventListener('change', event => {
 		if (!terminatorLayer) return;
