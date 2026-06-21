@@ -176,7 +176,7 @@ function renderLocalPassDetails(data = {}) {
 
 function setCardState(card, expanded) {
 	card.classList.toggle('is-expanded', expanded);
-	card.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+	card.querySelector('.card-toggle')?.setAttribute('aria-expanded', expanded ? 'true' : 'false');
 }
 
 function renderArtifact(card) {
@@ -207,6 +207,7 @@ function toggleCard(card) {
 }
 
 function shouldIgnoreCardClick(event) {
+	if (event.target.closest('.card-toggle')) return false;
 	return Boolean(event.target.closest('a, button, input, label, select, textarea'));
 }
 
@@ -215,11 +216,6 @@ export function initContextArtifacts() {
 	cards.forEach(card => {
 		card.addEventListener('click', event => {
 			if (shouldIgnoreCardClick(event)) return;
-			toggleCard(card);
-		});
-		card.addEventListener('keydown', event => {
-			if (event.key !== 'Enter' && event.key !== ' ') return;
-			event.preventDefault();
 			toggleCard(card);
 		});
 	});

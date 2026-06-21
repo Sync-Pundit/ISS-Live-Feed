@@ -8,6 +8,7 @@ INDEX = (ROOT / 'index.html').read_text(encoding='utf-8')
 API = (ROOT / 'assets/js/api.js').read_text(encoding='utf-8')
 APP = (ROOT / 'assets/js/app.js').read_text(encoding='utf-8')
 TELEMETRY = (ROOT / 'assets/js/telemetry.js').read_text(encoding='utf-8')
+CONTEXT = (ROOT / 'assets/js/context.js').read_text(encoding='utf-8')
 WORKER = (ROOT / 'src/worker.js').read_text(encoding='utf-8')
 
 CHECKS = [
@@ -16,6 +17,8 @@ CHECKS = [
     ('Docked vehicles client helper', 'function getDockedVehicles' in API),
     ('Docked vehicles renderer', 'function renderDockedVehicles' in TELEMETRY),
     ('Docked vehicles refresh call', 'renderDockedVehicles(dockedVehicles)' in APP),
+    ('Mission context artifact module', 'function renderEarthEventsDetails' in CONTEXT and 'updateContextArtifact' in CONTEXT),
+    ('Mission context card controls', INDEX.count('class="card-toggle"') >= 4 and 'initContextArtifacts' in APP),
     ('Space weather endpoint route', "'/api/space-weather'" in WORKER),
     ('Space weather renderer', 'function renderSpaceWeather' in TELEMETRY),
     ('Earth events renderer path', 'earth-events-summary' in TELEMETRY and 'renderEvents(weather.events || [])' in APP),
