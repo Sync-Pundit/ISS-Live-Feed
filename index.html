@@ -109,10 +109,42 @@
 					</div>
 				</div>
 				<div class="context-grid">
-					<article class="context-card"><span>Docked vehicles</span><strong id="docked-summary">Pending data source</strong><p id="docked-list">Configure a docked-vehicles endpoint or curated JSON later.</p></article>
-					<article class="context-card"><span>Space weather</span><strong id="space-weather-summary">Loading</strong><p id="space-weather-detail">Kp and solar X-ray state will appear here.</p></article>
-					<article class="context-card"><span>Earth events</span><strong id="earth-events-summary">Loading</strong><p id="earth-events-detail">NASA EONET events near the orbital path.</p></article>
-					<article class="context-card action-card"><span>Local pass</span><strong id="pass-summary">Optional</strong><p>Use browser location to estimate upcoming visible passes in a later wave.</p><button class="control-button ghost" type="button" id="local-pass">Enable location</button></article>
+					<article class="context-card muted-card" data-signal="hold">
+						<div class="context-card-top">
+							<span>Docked vehicles</span>
+							<i aria-hidden="true">DV</i>
+						</div>
+						<strong id="docked-summary">Pending source</strong>
+						<p id="docked-list">Configure docked-craft telemetry or curated JSON.</p>
+						<small>manifest awaiting uplink</small>
+					</article>
+					<article class="context-card" data-signal="loading" id="space-weather-card">
+						<div class="context-card-top">
+							<span>Space weather</span>
+							<i aria-hidden="true">KP</i>
+						</div>
+						<strong id="space-weather-summary">Loading</strong>
+						<p id="space-weather-detail">Kp and GOES X-ray state will appear here.</p>
+						<small id="space-weather-meta">signal pending</small>
+					</article>
+					<article class="context-card" data-signal="loading" id="earth-events-card">
+						<div class="context-card-top">
+							<span>Earth events</span>
+							<i aria-hidden="true">EV</i>
+						</div>
+						<strong id="earth-events-summary">Loading</strong>
+						<p id="earth-events-detail">NASA EONET events near the orbital path.</p>
+						<small id="earth-events-meta">feed pending</small>
+					</article>
+					<article class="context-card action-card" data-signal="optional">
+						<div class="context-card-top">
+							<span>Local pass</span>
+							<i aria-hidden="true">GPS</i>
+						</div>
+						<strong id="pass-summary">Optional</strong>
+						<p>Use browser location to estimate upcoming visible passes in a later wave.</p>
+						<button class="control-button ghost" type="button" id="local-pass">Enable location</button>
+					</article>
 				</div>
 			</section>
 		</main>
