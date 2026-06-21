@@ -115,7 +115,63 @@ function bodyFor(card) {
 	const key = card.dataset.artifact;
 	if (key === 'docked') return renderDockedDetails(artifactData.docked);
 	if (key === 'space-weather') return renderSpaceWeatherDetails(artifactData['space-weather']);
+	if (key === 'earth-events') return renderEarthEventsDetails(artifactData['earth-events']);
+	if (key === 'local-pass') return renderLocalPassDetails(artifactData['local-pass']);
 	return ARTIFACT_COPY[key]?.body || '<p>No artifact details available.</p>';
+}
+
+function latestGeometry(event) {
+	const geometries = Array.isArray(event?.geometry) ? event.geometry : [];
+	return [...geometries].reverse().find(item => Array.isArray(item.coordinates) && item.coordinates.length >= 2);
+}
+
+function renderEarthEventsDetails(data) {
+	const events = Array.isArray(data?.events) ? data.events : [];
+	const rows = events.slice(0, 10).map((event, index) => {
+		const geometry = latestGeometry(event);
+		const coords = geometry?.coordinates || [];
+		const category = event.categories?.[0]?.title || 'Unclassified';
+		const magnitude = Number.isFinite(geometry?.magnitudeValue)
+			? `${geometry.magnitudeValue} ${geometry.magnitudeUnit || ''}`.trim()
+			: 'no magnitude';
+		const hasCoords = Number.isFinite(Number(coords[0])) && Number.isFinite(Number(coords[1]));
+		return `
+			<div class="artifact-row event-row">
+				<span class="row-index">${String(index + 1).padStart(2, '0')}</span>
+				<div>
+					<strong>${esc(event.title || 'Untitled event')}</strong>
+					<p>${esc(category)} • ${esc(magnitude)} • updated ${esc(formatDate(geometry?.date))}</p>
+					${hasCoords ? `<button class="inline-action" type="button" data-event-index="${index}">Track on map</button>` : ''}
+				</div>
+			</div>
+		`;
+	});
+
+	return `
+		<div class="artifact-grid">
+			${renderKeyValue('Status', data?.status || 'unavailable')}
+			${renderKeyValue('Open events', events.length)}
+			${renderKeyValue('Source', 'NASA EONET')}
+			${renderKeyValue('Fetched', formatDate(data?.fetchedAt))}
+		</div>
+		${rows.length ? renderRows(rows) : '<p>No active Earth events were returned by the feed.</p>'}
+		<p class="artifact-note">Showing the first ${Math.min(events.length, 10)} events from the active EONET feed. Map actions use the latest point geometry available for each event.</p>
+		<a class="artifact-link" href="https://eonet.gsfc.nasa.gov/" target="_blank" rel="noopener noreferrer">Open EONET source</a>
+	`;
+}
+
+function renderLocalPassDetails(data = {}) {
+	const state = data.state || 'optional';
+	const detail = data.detail || 'Use browser location to estimate upcoming visible passes in a later wave.';
+	return `
+		<div class="artifact-grid">
+			${renderKeyValue('State', state)}
+			${renderKeyValue('Latitude', Number.isFinite(data.latitude) ? data.latitude.toFixed(2) : '--')}
+			${renderKeyValue('Longitude', Number.isFinite(data.longitude) ? data.longitude.toFixed(2) : '--')}
+			${renderKeyValue('Planner', 'later wave')}
+		</div>
+		<p class="artifact-note">${esc(detail)}</p>
+	`;
 }
 
 function setCardState(card, expanded) {
@@ -172,6 +228,22 @@ export function initContextArtifacts() {
 		if (activeCard) setCardState(activeCard, false);
 		activeCard = null;
 		document.getElementById('context-artifact')?.setAttribute('hidden', '');
+	});
+	document.getElementById('artifact-body')?.addEventListener('click', event => {
+		const button = event.target.closest('button[data-event-index]');
+		if (!button) return;
+		const events = Array.isArray(artifactData['earth-events']?.events) ? artifactData['earth-events'].events : [];
+		const selected = events[Number(button.dataset.eventIndex)];
+		const geometry = latestGeometry(selected);
+		const coords = geometry?.coordinates || [];
+		if (!Number.isFinite(Number(coords[0])) || !Number.isFinite(Number(coords[1]))) return;
+		document.dispatchEvent(new CustomEvent('mission:event-focus', {
+			detail: {
+				title: selected.title || 'Earth event',
+				lon: Number(coords[0]),
+				lat: Number(coords[1])
+			}
+		}));
 	});
 	document.addEventListener('keydown', event => {
 		if (event.key !== 'Escape' || !activeCard) return;

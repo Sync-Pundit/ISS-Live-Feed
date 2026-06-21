@@ -631,6 +631,23 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 	border-color: var(--cyan);
 	background: rgba(98, 231, 255, .14);
 }
+.inline-action {
+	margin-top: 8px;
+	padding: 7px 10px;
+	border: 1px solid rgba(255, 209, 102, .32);
+	border-radius: 999px;
+	background: rgba(255, 209, 102, .08);
+	color: var(--amber);
+	font: 900 .66rem/1 var(--mono);
+	text-transform: uppercase;
+	letter-spacing: .08em;
+	cursor: pointer;
+}
+.inline-action:hover,
+.inline-action:focus-visible {
+	border-color: var(--amber);
+	background: rgba(255, 209, 102, .14);
+}
 
 @media (max-width: 1050px) {
 	.mission-header { position: static; align-items: flex-start; flex-direction: column; }
