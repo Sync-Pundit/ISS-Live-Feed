@@ -109,7 +109,7 @@
 					</div>
 				</div>
 				<div class="context-grid">
-					<article class="context-card muted-card" data-signal="hold" id="docked-card">
+					<article class="context-card muted-card" data-signal="hold" id="docked-card" data-artifact="docked" role="button" tabindex="0" aria-expanded="false" aria-controls="context-artifact">
 						<div class="context-card-top">
 							<span>Docked vehicles</span>
 							<i aria-hidden="true">DV</i>
@@ -118,7 +118,7 @@
 						<p id="docked-list">Configure docked-craft telemetry or curated JSON.</p>
 						<a class="source-chip" id="docked-source" href="https://www.nasa.gov/international-space-station/space-station-visiting-vehicles/" target="_blank" rel="noopener noreferrer">manifest awaiting uplink</a>
 					</article>
-					<article class="context-card" data-signal="loading" id="space-weather-card">
+					<article class="context-card" data-signal="loading" id="space-weather-card" data-artifact="space-weather" role="button" tabindex="0" aria-expanded="false" aria-controls="context-artifact">
 						<div class="context-card-top">
 							<span>Space weather</span>
 							<i aria-hidden="true">KP</i>
@@ -127,7 +127,7 @@
 						<p id="space-weather-detail">Kp and GOES X-ray state will appear here.</p>
 						<small id="space-weather-meta">signal pending</small>
 					</article>
-					<article class="context-card" data-signal="loading" id="earth-events-card">
+					<article class="context-card" data-signal="loading" id="earth-events-card" data-artifact="earth-events" role="button" tabindex="0" aria-expanded="false" aria-controls="context-artifact">
 						<div class="context-card-top">
 							<span>Earth events</span>
 							<i aria-hidden="true">EV</i>
@@ -136,7 +136,7 @@
 						<p id="earth-events-detail">NASA EONET events near the orbital path.</p>
 						<small id="earth-events-meta">feed pending</small>
 					</article>
-					<article class="context-card action-card" data-signal="optional">
+					<article class="context-card action-card" data-signal="optional" data-artifact="local-pass" role="button" tabindex="0" aria-expanded="false" aria-controls="context-artifact">
 						<div class="context-card-top">
 							<span>Local pass</span>
 							<i aria-hidden="true">GPS</i>
@@ -146,6 +146,18 @@
 						<button class="control-button ghost" type="button" id="local-pass">Enable location</button>
 					</article>
 				</div>
+				<section class="context-artifact" id="context-artifact" hidden aria-live="polite">
+					<div class="artifact-head">
+						<div>
+							<p class="panel-kicker" id="artifact-kicker">Artifact drawer</p>
+							<h3 id="artifact-title">Select a mission card</h3>
+						</div>
+						<button class="control-button ghost" type="button" id="artifact-close" aria-label="Close mission context details">Close</button>
+					</div>
+					<div class="artifact-body" id="artifact-body">
+						<p>Choose a card to inspect its source, freshness, and telemetry details.</p>
+					</div>
+				</section>
 			</section>
 		</main>
 	</div>
