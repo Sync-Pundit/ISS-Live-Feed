@@ -441,10 +441,11 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 	z-index: 1;
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
+	justify-content: flex-start;
 	gap: 10px;
 }
 .context-card-top i {
+	margin-left: auto;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -457,6 +458,31 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 	color: var(--cyan);
 	font: 900 .62rem/1 var(--mono);
 	letter-spacing: .08em;
+}
+.card-toggle {
+	position: relative;
+	z-index: 2;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 24px;
+	padding: 0 8px;
+	border: 1px solid rgba(103, 228, 255, .18);
+	border-radius: 999px;
+	background: rgba(8, 16, 22, .58);
+	color: var(--muted);
+	font: 900 .58rem/1 var(--mono);
+	letter-spacing: .08em;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition: color .18s ease, border-color .18s ease, background .18s ease;
+}
+.card-toggle:hover,
+.card-toggle:focus-visible,
+.context-card.is-expanded .card-toggle {
+	color: var(--cyan);
+	border-color: rgba(98, 231, 255, .42);
+	background: rgba(98, 231, 255, .09);
 }
 .context-card strong {
 	position: relative;
@@ -799,6 +825,11 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 		height: 19px;
 		padding: 0 6px;
 		font-size: .5rem;
+	}
+	.card-toggle {
+		min-height: 19px;
+		padding: 0 6px;
+		font-size: .48rem;
 	}
 	.context-card strong { font-size: .9rem; }
 	.context-card p {
