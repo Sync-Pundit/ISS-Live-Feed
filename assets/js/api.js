@@ -56,6 +56,17 @@ export function getTle() {
 	return fetchJson('/api/iss/tle', { status: 'unavailable', source: 'fallback', lines: [] });
 }
 
+export function getDockedVehicles() {
+	return fetchJson('/api/docked-vehicles', {
+		status: 'unavailable',
+		count: null,
+		summary: 'Source unavailable',
+		detail: 'NASA visiting vehicle feed unavailable.',
+		vehicles: [],
+		source: 'NASA'
+	});
+}
+
 export function getSpaceWeather() {
 	return fetchJson('/api/space-weather', {
 		status: 'unavailable',

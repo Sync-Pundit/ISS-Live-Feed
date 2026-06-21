@@ -1,6 +1,7 @@
 import { onRequestGet as stream } from '../functions/api/stream.js';
 import { onRequestGet as issState } from '../functions/api/iss/state.js';
 import { onRequestGet as issTle } from '../functions/api/iss/tle.js';
+import { onRequestGet as dockedVehicles } from '../functions/api/docked-vehicles.js';
 import { onRequestGet as spaceWeather } from '../functions/api/space-weather.js';
 import { json } from '../functions/_shared/utils.js';
 
@@ -8,6 +9,7 @@ const routes = new Map([
 	['/api/stream', stream],
 	['/api/iss/state', issState],
 	['/api/iss/tle', issTle],
+	['/api/docked-vehicles', dockedVehicles],
 	['/api/space-weather', spaceWeather]
 ]);
 

@@ -1,7 +1,7 @@
-import { getIssState, getSpaceWeather, getTle } from './api.js';
+import { getDockedVehicles, getIssState, getSpaceWeather, getTle } from './api.js';
 import { initMap, renderEvents, updateMap } from './map.js';
 import { initStream } from './stream.js';
-import { renderSpaceWeather, renderTelemetry } from './telemetry.js';
+import { renderDockedVehicles, renderSpaceWeather, renderTelemetry } from './telemetry.js';
 
 const state = {
 	tickMs: 5000,
@@ -20,7 +20,8 @@ async function refreshTle() {
 }
 
 async function refreshContext() {
-	const weather = await getSpaceWeather();
+	const [weather, dockedVehicles] = await Promise.all([getSpaceWeather(), getDockedVehicles()]);
+	renderDockedVehicles(dockedVehicles);
 	renderSpaceWeather(weather);
 	renderEvents(weather.events || []);
 }
