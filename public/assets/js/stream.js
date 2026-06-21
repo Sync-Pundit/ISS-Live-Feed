@@ -66,7 +66,8 @@ function loadVideo(videoId) {
 			mute: 1,
 			rel: 0,
 			playsinline: 1,
-			modestbranding: 1
+			modestbranding: 1,
+			origin: window.location.origin
 		},
 		events: {
 			onReady: event => {

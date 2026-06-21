@@ -17,8 +17,8 @@
 	"vars": {
 		"YOUTUBE_CHANNEL_IDS": "UCLA_DiR1FfKNvjuUpBHmylQ,UC_aP7p621ATY_yAa8jMqUVA,UCmheCYT4HlbFi943lpH009Q,UCIBaDdAbGlFDeS33shmlD0A",
 		"YOUTUBE_FALLBACK_CHANNEL_ID": "UCLA_DiR1FfKNvjuUpBHmylQ",
-		"YOUTUBE_FALLBACK_VIDEO_ID": "21X5lGlDOfg",
-		"YOUTUBE_FALLBACK_TITLE": "NASA Live: Official Stream of NASA TV",
+		"YOUTUBE_FALLBACK_VIDEO_ID": "uwXgcTc8oY8",
+		"YOUTUBE_FALLBACK_TITLE": "Live Video from the International Space Station (Official NASA Stream)",
 		"STREAM_CACHE_SECONDS": "180"
 	}
 }
