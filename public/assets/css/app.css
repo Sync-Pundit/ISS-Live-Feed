@@ -545,6 +545,92 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 	color: var(--muted);
 }
 .artifact-body p:last-child { margin-bottom: 0; }
+.artifact-grid {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 10px;
+	margin-bottom: 12px;
+}
+.artifact-kv,
+.artifact-row {
+	border: 1px solid rgba(103, 228, 255, .14);
+	background: rgba(5, 12, 17, .68);
+	border-radius: 14px;
+}
+.artifact-kv {
+	display: grid;
+	gap: 7px;
+	padding: 10px;
+}
+.artifact-kv span,
+.row-index {
+	font: 800 .62rem/1.2 var(--mono);
+	letter-spacing: .13em;
+	text-transform: uppercase;
+	color: var(--dim);
+}
+.artifact-kv strong {
+	color: var(--text);
+	font: 900 .95rem/1.15 var(--mono);
+	letter-spacing: -.04em;
+	overflow-wrap: anywhere;
+}
+.artifact-rows {
+	display: grid;
+	gap: 8px;
+	margin: 12px 0;
+}
+.artifact-row {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	gap: 10px;
+	align-items: start;
+	padding: 10px;
+}
+.artifact-row strong {
+	display: block;
+	color: var(--text);
+	line-height: 1.25;
+}
+.artifact-row p {
+	margin: 4px 0 0;
+	color: var(--muted);
+	font-size: .9rem;
+}
+.row-index {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 34px;
+	height: 26px;
+	border-radius: 999px;
+	border: 1px solid rgba(98, 231, 255, .18);
+	color: var(--cyan);
+	background: rgba(98, 231, 255, .06);
+}
+.artifact-note {
+	padding: 10px 0 0;
+	border-top: 1px solid rgba(103, 228, 255, .12);
+}
+.artifact-link {
+	display: inline-flex;
+	width: fit-content;
+	margin-top: 10px;
+	padding: 9px 12px;
+	border: 1px solid rgba(98, 231, 255, .28);
+	border-radius: 999px;
+	background: rgba(98, 231, 255, .08);
+	color: var(--cyan);
+	font: 900 .72rem/1 var(--mono);
+	text-decoration: none;
+	text-transform: uppercase;
+	letter-spacing: .08em;
+}
+.artifact-link:hover,
+.artifact-link:focus-visible {
+	border-color: var(--cyan);
+	background: rgba(98, 231, 255, .14);
+}
 
 @media (max-width: 1050px) {
 	.mission-header { position: static; align-items: flex-start; flex-direction: column; }
@@ -722,6 +808,23 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 		padding-top: 10px;
 		font-size: .78rem;
 	}
+	.artifact-grid {
+		gap: 7px;
+		margin-bottom: 8px;
+	}
+	.artifact-kv,
+	.artifact-row {
+		border-radius: 10px;
+	}
+	.artifact-kv {
+		padding: 8px;
+	}
+	.artifact-row {
+		padding: 8px;
+	}
+	.artifact-row p {
+		font-size: .72rem;
+	}
 }
 
 @media (max-width: 680px) {
@@ -736,6 +839,7 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 	.telemetry-grid,
 	.context-grid { grid-template-columns: 1fr; }
 	.artifact-head { flex-direction: column; }
+	.artifact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 	.map-shell { height: 390px; }
 	.map-controls { justify-content: flex-start; }
 }
