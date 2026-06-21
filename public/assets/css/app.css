@@ -295,7 +295,7 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 }
 .metric span,
 .orbit-events span,
-.context-card span {
+.context-card-top span {
 	font: 800 .68rem/1.2 var(--mono);
 	letter-spacing: .14em;
 	text-transform: uppercase;
@@ -377,17 +377,118 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 	padding: 14px;
 	display: grid;
 	align-content: start;
-	gap: 9px;
+	gap: 8px;
+	overflow: hidden;
+	background:
+		linear-gradient(145deg, rgba(98, 231, 255, .055), transparent 48%),
+		rgba(5, 12, 17, .72);
+	transition: border-color .18s ease, transform .18s ease, background .18s ease;
+}
+.context-card::before {
+	content: "";
+	position: absolute;
+	inset: 0 auto 0 0;
+	width: 3px;
+	background: var(--cyan);
+	opacity: .75;
+	box-shadow: 0 0 18px rgba(98, 231, 255, .45);
+}
+.context-card::after {
+	content: "";
+	position: absolute;
+	inset: auto 12px 10px auto;
+	width: 42px;
+	height: 42px;
+	border-radius: 50%;
+	background:
+		radial-gradient(circle, rgba(98, 231, 255, .2), transparent 48%),
+		repeating-radial-gradient(circle, rgba(98, 231, 255, .22) 0 1px, transparent 2px 9px);
+	opacity: .32;
+}
+.context-card:hover {
+	transform: translateY(-1px);
+	border-color: rgba(98, 231, 255, .34);
+}
+.context-card[data-signal="good"]::before { background: var(--green); box-shadow: 0 0 18px rgba(103, 247, 162, .5); }
+.context-card[data-signal="warn"]::before { background: var(--amber); box-shadow: 0 0 18px rgba(255, 209, 102, .45); }
+.context-card[data-signal="danger"]::before { background: var(--red); box-shadow: 0 0 18px rgba(255, 91, 110, .45); }
+.context-card[data-signal="hold"]::before,
+.context-card[data-signal="optional"]::before { background: var(--dim); box-shadow: none; opacity: .48; }
+.context-card[data-signal="warn"] {
+	background:
+		linear-gradient(145deg, rgba(255, 209, 102, .08), transparent 48%),
+		rgba(5, 12, 17, .72);
+}
+.context-card[data-signal="danger"] {
+	background:
+		linear-gradient(145deg, rgba(255, 91, 110, .08), transparent 48%),
+		rgba(5, 12, 17, .72);
+}
+.context-card-top {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+}
+.context-card-top i {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 34px;
+	height: 24px;
+	padding: 0 8px;
+	border: 1px solid rgba(103, 228, 255, .18);
+	border-radius: 999px;
+	background: rgba(98, 231, 255, .06);
+	color: var(--cyan);
+	font: 900 .62rem/1 var(--mono);
+	letter-spacing: .08em;
 }
 .context-card strong {
+	position: relative;
+	z-index: 1;
 	font-size: 1.1rem;
 	line-height: 1.15;
 }
 .context-card p {
+	position: relative;
+	z-index: 1;
 	margin-bottom: 0;
 	color: var(--muted);
 }
-.action-card { background: linear-gradient(145deg, rgba(103, 247, 162, .08), rgba(5, 12, 17, .72)); }
+.context-card small {
+	position: relative;
+	z-index: 1;
+	display: inline-flex;
+	width: fit-content;
+	margin-top: auto;
+	padding: 5px 8px;
+	border: 1px solid rgba(103, 228, 255, .14);
+	border-radius: 999px;
+	color: var(--dim);
+	background: rgba(8, 16, 22, .48);
+	font: 800 .62rem/1 var(--mono);
+	text-transform: uppercase;
+	letter-spacing: .1em;
+}
+.muted-card {
+	background:
+		linear-gradient(145deg, rgba(96, 117, 130, .08), transparent 48%),
+		rgba(5, 12, 17, .72);
+}
+.action-card {
+	background:
+		linear-gradient(145deg, rgba(103, 247, 162, .08), rgba(5, 12, 17, .72));
+}
+.action-card .control-button {
+	position: relative;
+	z-index: 1;
+	width: 100%;
+	min-height: 34px;
+	margin-top: auto;
+}
 
 @media (max-width: 1050px) {
 	.mission-header { position: static; align-items: flex-start; flex-direction: column; }
@@ -402,11 +503,11 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 @media (min-width: 1051px) and (max-height: 860px) {
 	body { font-size: 14px; }
 	.console-shell {
-		width: min(1880px, calc((100vw - 22px) / .75));
+		width: min(1880px, calc((100vw - 22px) / .74));
 		height: auto;
 		padding: 6px 0;
 		display: block;
-		zoom: .75;
+		zoom: .74;
 	}
 	.mission-header {
 		flex: 0 0 auto;
@@ -489,7 +590,7 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 	}
 	.metric span,
 	.orbit-events span,
-	.context-card span {
+	.context-card-top span {
 		font-size: .55rem;
 		letter-spacing: .12em;
 	}
@@ -529,10 +630,28 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 		gap: 5px;
 		border-radius: 12px;
 	}
+	.context-card::after {
+		width: 30px;
+		height: 30px;
+		inset: auto 8px 8px auto;
+	}
+	.context-card-top i {
+		min-width: 26px;
+		height: 19px;
+		padding: 0 6px;
+		font-size: .5rem;
+	}
 	.context-card strong { font-size: .9rem; }
 	.context-card p {
 		font-size: .72rem;
 		line-height: 1.32;
+	}
+	.context-card small {
+		padding: 4px 6px;
+		font-size: .5rem;
+	}
+	.action-card .control-button {
+		min-height: 28px;
 	}
 }
 

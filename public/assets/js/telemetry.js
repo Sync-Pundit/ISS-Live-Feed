@@ -69,19 +69,29 @@ export function renderTelemetry(state, tle) {
 export function renderSpaceWeather(data) {
 	const summary = document.getElementById('space-weather-summary');
 	const detail = document.getElementById('space-weather-detail');
+	const meta = document.getElementById('space-weather-meta');
+	const card = document.getElementById('space-weather-card');
 	const kp = data?.kp?.kp;
 	const xray = data?.xray?.flux;
 	if (Number.isFinite(kp)) {
 		summary.textContent = `Kp ${kp}`;
 		detail.textContent = xray ? `Latest GOES X-ray flux ${Number(xray).toExponential(2)} W/m².` : 'Planetary K-index loaded; X-ray feed pending.';
+		meta.textContent = kp >= 5 ? 'geomagnetic storm watch' : 'nominal solar conditions';
+		card.dataset.signal = kp >= 7 ? 'danger' : kp >= 5 ? 'warn' : 'good';
 	} else {
 		summary.textContent = 'Unavailable';
 		detail.textContent = data?.note || 'Space weather feed unavailable.';
+		meta.textContent = 'feed unavailable';
+		card.dataset.signal = 'hold';
 	}
 
 	const events = Array.isArray(data?.events) ? data.events : [];
+	const eventCard = document.getElementById('earth-events-card');
+	const eventMeta = document.getElementById('earth-events-meta');
 	document.getElementById('earth-events-summary').textContent = events.length ? `${events.length} active events` : 'No event feed';
 	document.getElementById('earth-events-detail').textContent = events.length
 		? events.slice(0, 3).map(event => event.title).join(' • ')
 		: 'NASA EONET context will appear when available.';
+	eventMeta.textContent = events.length ? 'EONET feed active' : 'no hazards reported';
+	eventCard.dataset.signal = events.length > 20 ? 'warn' : events.length ? 'good' : 'hold';
 }
