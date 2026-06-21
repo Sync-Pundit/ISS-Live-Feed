@@ -1,5 +1,5 @@
 import { getDockedVehicles, getIssState, getSpaceWeather, getTle } from './api.js';
-import { initContextArtifacts } from './context.js';
+import { initContextArtifacts, updateContextArtifact } from './context.js';
 import { initMap, renderEvents, updateMap } from './map.js';
 import { initStream } from './stream.js';
 import { renderDockedVehicles, renderSpaceWeather, renderTelemetry } from './telemetry.js';
@@ -22,6 +22,8 @@ async function refreshTle() {
 
 async function refreshContext() {
 	const [weather, dockedVehicles] = await Promise.all([getSpaceWeather(), getDockedVehicles()]);
+	updateContextArtifact('docked', dockedVehicles);
+	updateContextArtifact('space-weather', weather);
 	renderDockedVehicles(dockedVehicles);
 	renderSpaceWeather(weather);
 	renderEvents(weather.events || []);
