@@ -458,7 +458,8 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 	margin-bottom: 0;
 	color: var(--muted);
 }
-.context-card small {
+.context-card small,
+.source-chip {
 	position: relative;
 	z-index: 1;
 	display: inline-flex;
@@ -472,6 +473,16 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 	font: 800 .62rem/1 var(--mono);
 	text-transform: uppercase;
 	letter-spacing: .1em;
+}
+.source-chip {
+	text-decoration: none;
+	transition: color .18s ease, border-color .18s ease, background .18s ease;
+}
+.source-chip:hover,
+.source-chip:focus-visible {
+	color: var(--cyan);
+	border-color: rgba(98, 231, 255, .38);
+	background: rgba(98, 231, 255, .08);
 }
 .muted-card {
 	background:
@@ -646,7 +657,8 @@ input:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 		font-size: .72rem;
 		line-height: 1.32;
 	}
-	.context-card small {
+	.context-card small,
+	.source-chip {
 		padding: 4px 6px;
 		font-size: .5rem;
 	}

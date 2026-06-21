@@ -99,9 +99,9 @@ export function renderSpaceWeather(data) {
 export function renderDockedVehicles(data) {
 	const summary = document.getElementById('docked-summary');
 	const detail = document.getElementById('docked-list');
-	const meta = document.getElementById('docked-meta');
+	const source = document.getElementById('docked-source');
 	const card = document.getElementById('docked-card');
-	if (!summary || !detail || !meta || !card) return;
+	if (!summary || !detail || !source || !card) return;
 
 	const vehicles = Array.isArray(data?.vehicles) ? data.vehicles : [];
 	const updatedAt = data?.updatedAt ? new Date(data.updatedAt) : null;
@@ -111,6 +111,7 @@ export function renderDockedVehicles(data) {
 
 	summary.textContent = data?.summary || (vehicles.length ? `${vehicles.length} vehicles docked` : 'Source unavailable');
 	detail.textContent = vehicles.length ? vehicles.slice(0, 5).join(' • ') : data?.detail || 'NASA visiting vehicle feed unavailable.';
-	meta.textContent = sourceAge;
-	card.dataset.signal = data?.status === 'ok' ? 'good' : 'hold';
+	source.textContent = sourceAge;
+	source.href = data?.sourceUrl || 'https://www.nasa.gov/international-space-station/space-station-visiting-vehicles/';
+	card.dataset.signal = data?.status === 'ok' ? 'good' : data?.status === 'degraded' ? 'warn' : 'hold';
 }
