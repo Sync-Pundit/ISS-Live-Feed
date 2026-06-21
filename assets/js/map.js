@@ -10,6 +10,15 @@ let eventLayer;
 let focusLayer;
 let previousFix;
 
+function escapeHtml(value) {
+	return String(value ?? '')
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;');
+}
+
 function splitAntimeridian(prev, next) {
 	return prev && Math.abs(next.longitude - prev.longitude) > 300;
 }
@@ -57,7 +66,7 @@ export function initMap() {
 			fillColor: '#ffd166',
 			fillOpacity: .36,
 			weight: 2
-		}).bindTooltip(title || 'Earth event', { permanent: false }).addTo(focusLayer).openTooltip();
+		}).bindTooltip(escapeHtml(title || 'Earth event'), { permanent: false }).addTo(focusLayer).openTooltip();
 		map.setView([lat, lon], Math.max(map.getZoom(), 4), { animate: true });
 	});
 
@@ -134,7 +143,7 @@ export function renderEvents(events = []) {
 			fillColor: '#ff5b6e',
 			fillOpacity: .58,
 			weight: 1
-		}).bindTooltip(event.title || 'Earth event');
+		}).bindTooltip(escapeHtml(event.title || 'Earth event'));
 		marker.addTo(eventLayer);
 	});
 }
