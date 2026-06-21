@@ -95,3 +95,22 @@ export function renderSpaceWeather(data) {
 	eventMeta.textContent = events.length ? 'EONET feed active' : 'no hazards reported';
 	eventCard.dataset.signal = events.length > 20 ? 'warn' : events.length ? 'good' : 'hold';
 }
+
+export function renderDockedVehicles(data) {
+	const summary = document.getElementById('docked-summary');
+	const detail = document.getElementById('docked-list');
+	const meta = document.getElementById('docked-meta');
+	const card = document.getElementById('docked-card');
+	if (!summary || !detail || !meta || !card) return;
+
+	const vehicles = Array.isArray(data?.vehicles) ? data.vehicles : [];
+	const updatedAt = data?.updatedAt ? new Date(data.updatedAt) : null;
+	const sourceAge = Number.isFinite(updatedAt?.getTime())
+		? `NASA updated ${updatedAt.toISOString().slice(0, 10)}`
+		: data?.source ? `${data.source} source` : 'source pending';
+
+	summary.textContent = data?.summary || (vehicles.length ? `${vehicles.length} vehicles docked` : 'Source unavailable');
+	detail.textContent = vehicles.length ? vehicles.slice(0, 5).join(' • ') : data?.detail || 'NASA visiting vehicle feed unavailable.';
+	meta.textContent = sourceAge;
+	card.dataset.signal = data?.status === 'ok' ? 'good' : 'hold';
+}
