@@ -18,6 +18,7 @@
 		"crons": ["0,30 * * * *"]
 	},
 	"observability": {
+		"enabled": true,
 		"redact_query_string": true,
 		"logs": {
 			"enabled": true,
