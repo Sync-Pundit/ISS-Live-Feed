@@ -21,7 +21,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
 a{color:inherit}
 h1,h2,h3,p{margin-top:0}
 [hidden]{display:none!important}
-.orbital-bg{position:absolute;top:50px;right:0;width:42vw;height:42vw;min-width:400px;min-height:400px;pointer-events:none;opacity:.12;border:1px solid var(--muted);border-radius:50%;transform:translate(30%,-35%)}
+.orbital-bg{position:absolute;top:50px;right:0;width:42vw;height:42vw;min-width:400px;min-height:400px;pointer-events:none;opacity:.12;border:1px solid var(--muted);border-radius:50%;transform:translateY(-35%)}
 .orbital-bg:before,.orbital-bg:after{content:"";position:absolute;inset:16%;border:1px solid var(--muted);border-radius:50%}
 .orbital-bg:after{inset:32%}
 .console-shell{position:relative;width:min(1600px,calc(100% - 64px));margin:auto;padding-bottom:70px}
