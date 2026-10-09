@@ -10,8 +10,6 @@ An orbital observatory for following the International Space Station. The map, p
 - Browser-local geometric pass predictions after a visitor chooses to share their location. These are **not** optical visibility forecasts.
 - Light and dark modes. The selected mode is stored in the visitor's browser.
 
-See [the source and design audit](docs/source-audit.md) for provider choices, limits, and the remaining work.
-
 ## Runtime
 
 This repository contains a Cloudflare Worker entry point in `src/worker.js` and static assets in `public/`. The repository-root `index.html` and `assets/` mirror the static files for older static hosting. Edit the root files, then run:
