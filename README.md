@@ -31,9 +31,9 @@ Cloudflare can build and deploy the Worker directly from the connected GitHub re
 
 ## Configuration
 
-The core tracker requires no secret. The optional `YOUTUBE_API_KEY` Worker secret enables one channel-scoped ISS live search. `YOUTUBE_CHANNEL_IDS` is a comma-separated variable; only the first channel is queried to bound YouTube quota use. `STREAM_CACHE_SECONDS` defaults to three hours and is never allowed below one hour. An explicitly maintained `YOUTUBE_FALLBACK_VIDEO_ID` or `YOUTUBE_FALLBACK_CHANNEL_ID` can supply an embed when discovery finds no match. Do not use an unverified video ID as a fallback.
+The core tracker requires no secret. Add a server-side `YOUTUBE_API_KEY` secret to enable station video discovery. The Worker resolves NASA's channel from its public handle, checks active broadcasts through the YouTube Data API, and embeds only a live, embeddable station camera. No current video ID or fallback title is configured. Remove the old `YOUTUBE_CHANNEL_IDS`, `YOUTUBE_FALLBACK_TITLE`, and `STREAM_CACHE_SECONDS` variables from Cloudflare after this version deploys.
 
-A stream discovery failure, missing key, and no matching ISS broadcast are separate states. The endpoint does not publish the key. YouTube's default allocation is 100 `search.list` calls per day, and Worker cache entries are local to a data center, so production traffic still needs quota monitoring.
+A Cloudflare Cron Trigger checks twice an hour and stores one shared result in Workers KV. Public requests only read that result. This keeps `search.list` to about 48 calls per day, below YouTube's default 100-call daily search allowance, and avoids one search per data center. The page stops calling a stream live after 45 minutes without a successful check. YouTube's push feed announces uploads and title or description edits, but does not guarantee a go-live event, so it cannot replace the scheduled check. If the API key is missing or discovery fails, the page links to [NASA Live](https://www.nasa.gov/live/).
 
 ## Public sources
 
