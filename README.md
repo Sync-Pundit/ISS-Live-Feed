@@ -1,10 +1,10 @@
-# ISS / Earth in motion
+# ISS / live orbit
 
 An orbital observatory for following the International Space Station. The map, position, orbit forecast, and public context feeds work without a private API key. Video discovery is optional; the interface links to [NASA Live](https://www.nasa.gov/live/) when an embeddable ISS signal is unavailable.
 
 ## Experience
 
-- NASA Earth imagery with the current ISS fix, ground track, visibility footprint, and Earth event markers.
+- NASA Earth imagery with the current ISS fix, ground track, visibility footprint, and Earth event markers. **Day / Night** switches between archival Blue Marble and city-lights imagery; **ISS footprint** and **Earth events** independently show or hide overlays.
 - Position, altitude, speed, and source freshness in a compact instrument strip.
 - A station video panel that shows a clear off-air state instead of an invalid embed.
 - Browser-local geometric pass predictions after a visitor chooses to share their location. These are **not** optical visibility forecasts.

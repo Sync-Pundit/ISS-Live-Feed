@@ -4,11 +4,11 @@
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width,initial-scale=1" />
-	<title>ISS / Earth in motion | Sync_Pundit</title>
+	<title>ISS / live orbit | Sync_Pundit</title>
 	<meta name="description" content="Follow the International Space Station across Earth, inspect its orbit, and open NASA's live station view." />
 	<link rel="icon" href="/assets/favicon.png" />
-	<meta property="og:title" content="ISS / Earth in motion" />
-	<meta property="og:description" content="A live orbital observatory from Sync_Pundit." />
+	<meta property="og:title" content="ISS / live orbit" />
+	<meta property="og:description" content="Follow the station above Earth with live position and orbit data." />
 	<meta property="og:type" content="website" />
 	<meta property="og:image" content="/assets/favicon.png" />
 	<meta name="twitter:card" content="summary_large_image" />
@@ -18,13 +18,12 @@
 	<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet" />
+	<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin />
 	<link rel="stylesheet" href="/assets/css/app.css" />
 </head>
 
 <body>
-	<div class="orbital-bg" aria-hidden="true"></div>
 	<div class="console-shell">
 		<header class="mission-header">
 			<a class="brand" href="#top" aria-label="Sync Pundit ISS home"><span class="brand-mark" aria-hidden="true"><i></i></span><span>SYNC_PUNDIT <small>/ ISS</small></span></a>
@@ -33,9 +32,9 @@
 		</header>
 		<section class="intro" id="top" aria-labelledby="page-title">
 			<div class="mission-title-block">
-				<p class="eyebrow"><span class="section-number">01 / 04</span> THE ORBITAL OBSERVATORY <span class="eyebrow-rule"></span> OBJECT 25544</p>
-				<h1 id="page-title">Earth is moving<br /><em>beneath us.</em></h1>
-				<p class="mission-copy">One station. Sixteen sunrises a day. Follow its path around the planet, then look through NASA's window when a signal is live.</p>
+				<p class="eyebrow">TRACKING OBJECT 25544 <span class="eyebrow-rule"></span> INTERNATIONAL SPACE STATION</p>
+				<h1 id="page-title"><span>ISS</span><em>Earth below.<br />Orbit ahead.</em></h1>
+				<p class="mission-copy">Follow the station across the planet. See its position and next track, then watch NASA's station feed when a signal is live.</p>
 			</div>
 			<div class="mission-status" aria-label="System status">
 				<span class="intro-orbit" aria-hidden="true"><i></i></span>
@@ -48,12 +47,19 @@
 				<div class="panel-head">
 					<div>
 						<p class="panel-kicker">01 / LIVE ORBIT</p>
-						<h2 id="map-title">The station, <em>right now.</em></h2>
+						<h2 id="map-title">Earth under the station</h2>
 					</div>
-					<div class="map-controls" aria-label="Map layers">
-						<label><input type="checkbox" id="toggle-terminator" checked /> Day/night</label>
-						<label><input type="checkbox" id="toggle-footprint" checked /> Footprint</label>
-						<label><input type="checkbox" id="toggle-events" checked /> Events</label>
+					<div class="map-toolbar">
+						<fieldset class="imagery-switch" aria-label="Day or night map imagery">
+							<legend>DAY / NIGHT</legend>
+							<label><input type="radio" name="basemap" value="earth" checked /> Day <small>Earth</small></label>
+							<label><input type="radio" name="basemap" value="night" /> Night <small>City lights</small></label>
+						</fieldset>
+						<fieldset class="map-controls" aria-label="Map overlays">
+							<legend>OVERLAYS</legend>
+							<label><input type="checkbox" id="toggle-footprint" checked /> ISS footprint</label>
+							<label><input type="checkbox" id="toggle-events" checked /> Earth events</label>
+						</fieldset>
 					</div>
 				</div>
 				<div class="map-stage"><div id="iss-map" class="map-shell"></div><div class="map-overlay" aria-hidden="true"><span class="map-overlay-label">CURRENT FIX / ISS</span><strong id="hero-lat">--</strong><strong id="hero-lon">--</strong><span class="map-overlay-rule"></span><small>Position updates every 5 seconds</small></div></div>
@@ -61,7 +67,7 @@
 					<span id="map-updated">Map waiting for first fix</span>
 					<span id="path-confidence">Forecast: pending TLE</span>
 				</div>
-				<p class="map-credit">EARTH IMAGERY / NASA GIBS BLUE MARBLE · ORBIT / CELESTRAK · POSITION / WHERE THE ISS AT</p>
+				<p class="map-credit"><span>Day / Night switches NASA archival imagery. The ISS position and forecast stay live.</span> <span>ORBIT / CELESTRAK · POSITION / WHERE THE ISS AT</span></p>
 			</section>
 
 			<aside class="panel telemetry-panel" aria-labelledby="telemetry-title">
@@ -174,7 +180,6 @@
 	</div>
 
 	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin></script>
-	<script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js"></script>
 	<script src="https://www.youtube.com/iframe_api"></script>
 	<script type="module" src="/assets/js/app.js"></script>

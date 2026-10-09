@@ -23,7 +23,7 @@ The old “next transition” used the Sun's position at a fixed ground coordina
 
 ## Design direction
 
-The station's moving position leads the experience. NASA Earth imagery fills the first canvas; coordinates and the orbit line are annotations on that view. A single row of instruments answers “where is it, how fast, and how fresh?” The video is its own window with an intentional off-air state. Context feeds sit below as readable signals with source details. The visual identity uses deep ink, warm signal orange, atlas-like type, and thin orbital geometry. Light and dark modes share the same hierarchy.
+The station's moving position leads the experience. NASA Earth imagery fills the first canvas; coordinates and the orbit line are annotations on that view. Day / Night switches the archival Earth and city-lights basemaps. Footprint and Earth events are independent overlays. A single row of instruments answers “where is it, how fast, and how fresh?” The video has an off-air state, and context feeds show source details. The visual identity uses cold blue, solar yellow, condensed flight-display type, and a compact ISS wordmark. Light and dark modes share the same hierarchy.
 
 ## Remaining risks
 
