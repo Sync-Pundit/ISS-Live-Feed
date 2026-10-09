@@ -29,7 +29,7 @@ async function activeEvents() {
 }
 
 export async function onRequestGet({ request }) {
-	return cachedJson(request, 'space-weather-v1', 300, async () => {
+	return cachedJson(request, 'space-weather-v2', 300, async () => {
 		const [kp, xray, eventResult] = await Promise.all([latestKp(), latestXray(), activeEvents()]);
 		return {
 			status: kp || xray || eventResult.available ? 'ok' : 'degraded',
