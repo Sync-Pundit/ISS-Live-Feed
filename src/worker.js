@@ -1,4 +1,4 @@
-import { onRequestGet as stream } from '../functions/api/stream.js';
+import { onRequestGet as stream, refreshLiveStream } from '../functions/api/stream.js';
 import { onRequestGet as issState } from '../functions/api/iss/state.js';
 import { onRequestGet as issTle } from '../functions/api/iss/tle.js';
 import { onRequestGet as dockedVehicles } from '../functions/api/docked-vehicles.js';
@@ -27,6 +27,9 @@ const blockedAssetPaths = new Set([
 ]);
 
 export default {
+	scheduled(_event, env, ctx) {
+		ctx.waitUntil(refreshLiveStream(env));
+	},
 	async fetch(request, env, ctx) {
 		const url = new URL(request.url);
 		if (request.method === 'OPTIONS' && url.pathname.startsWith('/api/')) {

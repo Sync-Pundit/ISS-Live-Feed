@@ -103,8 +103,8 @@ function renderNoStreamSource() {
 	setOverlay('', false);
 }
 
-async function refreshStream(reason = 'Refreshing stream metadata') {
-	setOverlay(reason, true);
+async function refreshStream(reason = 'Refreshing stream metadata', showProgress = true) {
+	if (showProgress) setOverlay(reason, true);
 	const stream = await getStream();
 	updateStreamUi(stream);
 	const mode = stream.status === 'live' ? 'good' : stream.status === 'fallback' ? 'warn' : 'muted';
@@ -133,6 +133,9 @@ function scheduleRefresh(reason) {
 
 export async function initStream() {
 	document.getElementById('refresh-stream')?.addEventListener('click', () => refreshStream('Manual stream refresh'));
+	setInterval(() => {
+		if (document.visibilityState === 'visible') refreshStream('Checking station video', false);
+	}, 2 * 60 * 1000);
 	window.onYouTubeIframeAPIReady = () => {
 		if (!pendingVideoId) return;
 		const videoId = pendingVideoId;
