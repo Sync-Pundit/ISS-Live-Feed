@@ -41,16 +41,36 @@ export function forecastFromTle(tle, minutes = 92, stepSeconds = 45) {
 	return points;
 }
 
-export function fallbackForecast(state) {
-	if (!Number.isFinite(state?.latitude) || !Number.isFinite(state?.longitude)) return [];
-	const points = [];
-	const lat = state.latitude;
-	let lon = state.longitude;
-	for (let i = 0; i <= 90; i += 1) {
-		lon = ((lon + 4 + 540) % 360) - 180;
-		points.push([lat + Math.sin(i / 8) * 8, lon]);
+export function predictPasses(tle, latitude, longitude, hours = 24) {
+	const satrec = tleToSatrec(tle);
+	if (!satrec || !Number.isFinite(latitude) || !Number.isFinite(longitude)) return [];
+	const satellite = window.satellite;
+	const observer = { latitude: latitude * Math.PI / 180, longitude: longitude * Math.PI / 180, height: 0 };
+	const threshold = 10 * Math.PI / 180;
+	const now = Date.now();
+	const stepMs = 30_000;
+	const passes = [];
+	let pass = null;
+	for (let offset = 0; offset <= hours * 3_600_000; offset += stepMs) {
+		const date = new Date(now + offset);
+		const propagated = satellite.propagate(satrec, date);
+		if (!propagated?.position || !Number.isFinite(propagated.position.x)) continue;
+		const ecf = satellite.eciToEcf(propagated.position, satellite.gstime(date));
+		const elevation = satellite.ecfToLookAngles(observer, ecf).elevation;
+		if (elevation >= threshold) {
+			if (!pass) pass = { start: date.toISOString(), peak: date.toISOString(), maxElevation: elevation * 180 / Math.PI };
+			if (elevation * 180 / Math.PI > pass.maxElevation) {
+				pass.peak = date.toISOString();
+				pass.maxElevation = elevation * 180 / Math.PI;
+			}
+		} else if (pass) {
+			pass.end = date.toISOString();
+			passes.push(pass);
+			pass = null;
+			if (passes.length >= 3) break;
+		}
 	}
-	return points;
+	return passes;
 }
 
 export { ISS_NORAD_ID };

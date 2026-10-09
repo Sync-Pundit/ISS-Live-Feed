@@ -1,87 +1,47 @@
-# ISS Live Console
+# ISS / live orbit
 
-A Cloudflare-backed orbital mission console for watching the International Space Station, tracking its orbit, and reading public telemetry/context feeds.
+An orbital observatory for following the International Space Station. The map, position, orbit forecast, and public context feeds work without a private API key. Video discovery is optional; the interface links to [NASA Live](https://www.nasa.gov/live/) when an embeddable ISS signal is unavailable.
 
-## What it does
+## Experience
 
-- Self-healing YouTube live stream discovery through `/api/stream`.
-- Cached ISS position proxy through `/api/iss/state`.
-- Cached ISS TLE endpoint through `/api/iss/tle` for SGP4 forecast paths.
-- Space-weather and Earth-event context through `/api/space-weather`.
-- Static browser fallback for local development when Cloudflare Functions are not running.
+- NASA Earth imagery with the current ISS fix, ground track, visibility footprint, and Earth event markers. **Day / Night** switches between archival Blue Marble and city-lights imagery; **ISS footprint** and **Earth events** independently show or hide overlays.
+- Position, altitude, speed, and source freshness in a compact instrument strip.
+- A station video panel that shows a clear off-air state instead of an invalid embed.
+- Browser-local geometric pass predictions after a visitor chooses to share their location. These are **not** optical visibility forecasts.
+- Light and dark modes. The selected mode is stored in the visitor's browser.
 
-## Hosting target
+See [the source and design audit](docs/source-audit.md) for provider choices, limits, and the remaining work.
 
-This app is designed for **Cloudflare Pages**.
+## Runtime
 
-The browser shell is static, but the dynamic stream discovery requires server-side secrets, so the `/functions` directory should be deployed with Cloudflare Pages Functions.
+This repository contains a Cloudflare Worker entry point in `src/worker.js` and static assets in `public/`. The repository-root `index.html` and `assets/` mirror the static files for older static hosting. Edit the root files, then run:
 
-## Required Cloudflare secret
-
-Set this in Cloudflare Pages:
-
-```text
-YOUTUBE_API_KEY=<Google/YouTube Data API key>
+```sh
+python3 tools/sync_public.py
+python3 tools/sync_public.py --check
 ```
 
-The key is used only server-side by `/api/stream`.
+For local testing:
 
-## Recommended Cloudflare environment variables
-
-```text
-YOUTUBE_CHANNEL_IDS=<comma-separated YouTube channel IDs to search for live streams>
-YOUTUBE_FALLBACK_VIDEO_ID=<optional known-good fallback video id>
-YOUTUBE_FALLBACK_CHANNEL_ID=<optional channel id for YouTube live channel embed fallback>
-YOUTUBE_FALLBACK_TITLE=ISS live stream fallback
-STREAM_CACHE_SECONDS=180
+```sh
+npx wrangler@4 dev --local
 ```
 
-`YOUTUBE_CHANNEL_IDS` is intentionally not hardcoded because NASA and ISS mirror channels can change. Add official NASA/ISS channel IDs in Cloudflare once selected. If you do not have a stable fallback video ID, prefer `YOUTUBE_FALLBACK_CHANNEL_ID`; otherwise the UI will show a clean no-source state until discovery is configured.
+Cloudflare can build and deploy the Worker directly from the connected GitHub repository with `npx wrangler@4 deploy`. No GitHub Actions token is required.
 
-## Public data sources
+## Configuration
 
-- YouTube Data API for current live stream discovery.
-- Where The ISS At for live station position.
-- CelesTrak for ISS TLE data.
-- NOAA SWPC for Kp index and GOES X-ray flux.
-- NASA EONET for active Earth events.
+The core tracker requires no secret. The optional `YOUTUBE_API_KEY` Worker secret enables one channel-scoped ISS live search. `YOUTUBE_CHANNEL_IDS` is a comma-separated variable; only the first channel is queried to bound YouTube quota use. `STREAM_CACHE_SECONDS` defaults to three hours and is never allowed below one hour. An explicitly maintained `YOUTUBE_FALLBACK_VIDEO_ID` or `YOUTUBE_FALLBACK_CHANNEL_ID` can supply an embed when discovery finds no match. Do not use an unverified video ID as a fallback.
 
-## Local development
+A stream discovery failure, missing key, and no matching ISS broadcast are separate states. The endpoint does not publish the key. YouTube's default allocation is 100 `search.list` calls per day, and Worker cache entries are local to a data center, so production traffic still needs quota monitoring.
 
-Any static server can render the UI:
+## Public sources
 
-```bash
-python3 -m http.server 5000
-```
+- [Where the ISS at](https://wheretheiss.at/w/developer) for the current ISS position and TLE fallback.
+- [CelesTrak](https://celestrak.org/NORAD/documentation/gp-data-formats.php) for the primary TLE.
+- [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/access-basics/) for Earth imagery. Blue Marble is historical base imagery, not a live camera.
+- [NASA](https://www.nasa.gov/international-space-station/space-station-visiting-vehicles/) for the visiting-vehicle summary.
+- [NOAA SWPC](https://www.swpc.noaa.gov/content/data-access) for Kp and GOES X-ray readings.
+- [NASA EONET](https://eonet.gsfc.nasa.gov/docs/v3) for a sample of open Earth events.
 
-Then open:
-
-```text
-http://127.0.0.1:5000/
-```
-
-Without Cloudflare Functions, stream discovery and TLE/context endpoints fall back to degraded states. ISS state still tries a direct browser fetch to `wheretheiss.at`.
-
-## Cloudflare deployment notes
-
-- Build command: none
-- Output directory: repository root
-- Functions directory: `functions`
-- Add the environment variables/secrets above in Cloudflare Pages settings.
-
-## Key files
-
-```text
-index.html
-assets/css/app.css
-assets/js/app.js
-assets/js/api.js
-assets/js/stream.js
-assets/js/map.js
-assets/js/orbit.js
-assets/js/telemetry.js
-functions/api/stream.js
-functions/api/iss/state.js
-functions/api/iss/tle.js
-functions/api/space-weather.js
-```
+Source availability and freshness are shown or described where the data is used. A failed feed must never be interpreted as zero events or zero docked vehicles.

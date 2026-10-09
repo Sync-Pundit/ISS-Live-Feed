@@ -1,11 +1,11 @@
 const FALLBACK_STREAM = {
 	videoId: null,
 	embedUrl: null,
-	title: 'ISS live stream fallback',
-	source: 'fallback',
-	status: 'fallback',
+	title: 'Station video unavailable',
+	source: 'local fallback',
+	status: 'unavailable',
 	checkedAt: null,
-	note: 'Cloudflare stream discovery is not configured yet.'
+	note: 'Open the official NASA live page for the latest station view.'
 };
 
 async function directIssState() {
@@ -73,6 +73,7 @@ export function getSpaceWeather() {
 		kp: null,
 		xray: null,
 		events: [],
+		eventsAvailable: false,
 		note: 'Space weather endpoint unavailable.'
 	});
 }
