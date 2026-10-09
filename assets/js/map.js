@@ -1,11 +1,10 @@
-import { buildFootprintCircle, fallbackForecast, forecastFromTle } from './orbit.js';
+import { buildFootprintCircle, forecastFromTle } from './orbit.js';
 
 let map;
 let marker;
 let liveTrail;
 let forecastTrail;
 let footprintLayer;
-let terminatorLayer;
 let eventLayer;
 let focusLayer;
 let previousFix;
@@ -24,56 +23,55 @@ function splitAntimeridian(prev, next) {
 }
 
 export function initMap() {
-	const dark = window.L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
-		subdomains: 'abcd',
-		maxZoom: 7
-	});
-	const darkLabels = window.L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
-		subdomains: 'abcd',
+	const earth = window.L.tileLayer('https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_NextGeneration/default/2004-12-01/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg', {
+		minZoom: 1,
 		maxZoom: 7,
-		pane: 'overlayPane'
+		attribution: 'Imagery: <a href="https://earthdata.nasa.gov/gibs" target="_blank" rel="noopener noreferrer">NASA ESDIS GIBS</a>'
 	});
-	const topo = window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 7 });
+	const night = window.L.tileLayer('https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_CityLights_2012/default/2012-01-01/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg', {
+		minZoom: 1,
+		maxZoom: 7,
+		attribution: 'Imagery: <a href="https://earthdata.nasa.gov/gibs" target="_blank" rel="noopener noreferrer">NASA ESDIS GIBS</a>'
+	});
 	map = window.L.map('iss-map', {
 		worldCopyJump: true,
+		minZoom: 1,
+		maxZoom: 7,
+		scrollWheelZoom: false,
 		zoomControl: true,
-		attributionControl: false,
-		layers: [dark, darkLabels]
-	}).setView([0, 0], 3);
-	window.L.control.layers(
-		{ 'Dark orbit': dark, 'Open map': topo },
-		{ Labels: darkLabels },
-		{ position: 'topright' }
-	).addTo(map);
+		attributionControl: true,
+		layers: [earth]
+	}).setView([0, 0], 2);
+	document.querySelectorAll('input[name="basemap"]').forEach(input => {
+		input.addEventListener('change', () => {
+			if (!input.checked) return;
+			const next = input.value === 'night' ? night : earth;
+			map.removeLayer(input.value === 'night' ? earth : night);
+			next.addTo(map);
+		});
+	});
 
 	const icon = window.L.divIcon({ className: 'iss-marker', html: '', iconSize: [38, 38], iconAnchor: [19, 19] });
 	marker = window.L.marker([0, 0], { icon }).addTo(map);
-	liveTrail = window.L.polyline([], { color: '#67f7a2', weight: 2, opacity: .9 }).addTo(map);
-	forecastTrail = window.L.polyline([], { color: '#62e7ff', weight: 2, opacity: .72, dashArray: '8,10' }).addTo(map);
-	footprintLayer = window.L.polygon([], { color: '#ffd166', weight: 1, opacity: .5, fillColor: '#ffd166', fillOpacity: .08 }).addTo(map);
+	liveTrail = window.L.polyline([], { color: '#f8cf70', weight: 2, opacity: .9 }).addTo(map);
+	forecastTrail = window.L.polyline([], { color: '#8fe4ed', weight: 2, opacity: .78, dashArray: '8,10' }).addTo(map);
+	footprintLayer = window.L.polygon([], { color: '#f8cf70', weight: 1, opacity: .6, fillColor: '#f8cf70', fillOpacity: .08 }).addTo(map);
 	eventLayer = window.L.layerGroup().addTo(map);
 	focusLayer = window.L.layerGroup().addTo(map);
-	terminatorLayer = window.L.layerGroup().addTo(map);
-	refreshTerminator();
-	setInterval(refreshTerminator, 60_000);
 	document.addEventListener('mission:event-focus', event => {
 		const { lat, lon, title } = event.detail || {};
 		if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
 		focusLayer.clearLayers();
 		window.L.circleMarker([lat, lon], {
 			radius: 10,
-			color: '#ffd166',
-			fillColor: '#ffd166',
+			color: '#f8cf70',
+			fillColor: '#f8cf70',
 			fillOpacity: .36,
 			weight: 2
 		}).bindTooltip(escapeHtml(title || 'Earth event'), { permanent: false }).addTo(focusLayer).openTooltip();
 		map.setView([lat, lon], Math.max(map.getZoom(), 4), { animate: true });
 	});
 
-	document.getElementById('toggle-terminator')?.addEventListener('change', event => {
-		if (!terminatorLayer) return;
-		event.target.checked ? terminatorLayer.addTo(map) : map.removeLayer(terminatorLayer);
-	});
 	document.getElementById('toggle-footprint')?.addEventListener('change', event => {
 		event.target.checked ? footprintLayer.addTo(map) : map.removeLayer(footprintLayer);
 	});
@@ -81,33 +79,6 @@ export function initMap() {
 		event.target.checked ? eventLayer.addTo(map) : map.removeLayer(eventLayer);
 	});
 	return map;
-}
-
-function refreshTerminator() {
-	if (!window.SunCalc || !terminatorLayer || !map) return;
-	const checked = document.getElementById('toggle-terminator')?.checked !== false;
-	terminatorLayer.clearLayers();
-	if (!checked) return;
-
-	const now = new Date();
-	const step = 10;
-	for (let lat = -90; lat < 90; lat += step) {
-		for (let lon = -180; lon < 180; lon += step) {
-			const centerLat = lat + step / 2;
-			const centerLon = lon + step / 2;
-			const altitude = window.SunCalc.getPosition(now, centerLat, centerLon).altitude;
-			if (altitude >= 0) continue;
-			window.L.rectangle(
-				[[lat, lon], [lat + step, lon + step]],
-				{
-					stroke: false,
-					fillColor: '#03080b',
-					fillOpacity: Math.min(0.34, 0.14 + Math.abs(altitude) / 4),
-					interactive: false
-				}
-			).addTo(terminatorLayer);
-		}
-	}
 }
 
 export function updateMap(state, tle) {
@@ -122,8 +93,8 @@ export function updateMap(state, tle) {
 	liveTrail.setLatLngs(trail);
 
 	const forecast = forecastFromTle(tle);
-	forecastTrail.setLatLngs(forecast.length ? forecast : fallbackForecast(state));
-	document.getElementById('path-confidence').textContent = forecast.length ? 'Forecast: SGP4 from TLE' : 'Forecast: approximate fallback';
+	forecastTrail.setLatLngs(forecast);
+	document.getElementById('path-confidence').textContent = forecast.length ? 'Forecast: SGP4 from TLE' : 'Forecast unavailable until orbit elements load';
 
 	const footprint = buildFootprintCircle(state.latitude, state.longitude, state.footprint);
 	footprintLayer.setLatLngs(footprint);
@@ -139,8 +110,8 @@ export function renderEvents(events = []) {
 		if (!coords || coords.length < 2) return;
 		const marker = window.L.circleMarker([coords[1], coords[0]], {
 			radius: 5,
-			color: '#ff5b6e',
-			fillColor: '#ff5b6e',
+			color: '#e889c3',
+			fillColor: '#e889c3',
 			fillOpacity: .58,
 			weight: 1
 		}).bindTooltip(escapeHtml(event.title || 'Earth event'));

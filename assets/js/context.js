@@ -16,8 +16,8 @@ const ARTIFACT_COPY = {
 	},
 	'local-pass': {
 		kicker: 'Observer Pass',
-		title: 'Local pass',
-		body: '<p>Local pass estimation is a planned wave. Location capture status will appear here when enabled.</p>'
+		title: 'Your sky',
+		body: '<p>Upcoming geometric passes are calculated in your browser from the current orbit elements.</p>'
 	}
 };
 
@@ -103,14 +103,14 @@ function renderDockedDetails(data) {
 
 function renderSpaceWeatherDetails(data) {
 	const kp = data?.kp?.kp;
-	const flux = Number(data?.xray?.flux);
+	const flux = data?.xray?.flux == null ? NaN : Number(data.xray.flux);
 	const events = Array.isArray(data?.events) ? data.events.length : 0;
 	return `
 		<div class="artifact-grid">
 			${renderKeyValue('Kp index', Number.isFinite(kp) ? kp : '--')}
 			${renderKeyValue('GOES flux', Number.isFinite(flux) ? `${flux.toExponential(2)} W/m²` : '--')}
 			${renderKeyValue('Flux class', fluxClass(flux))}
-			${renderKeyValue('Open EONET events', events)}
+			${renderKeyValue('Open EONET events', data?.eventsAvailable === false ? 'unavailable' : events)}
 		</div>
 		${renderRows([
 			`<div class="artifact-row"><span class="row-index">KP</span><div><strong>${esc(kpInterpretation(kp))}</strong><p>Latest reading ${esc(formatDate(data?.kp?.time))}</p></div></div>`,
@@ -163,7 +163,7 @@ function renderEarthEventsDetails(data) {
 			${renderKeyValue('Source', 'NASA EONET')}
 			${renderKeyValue('Fetched', formatDate(data?.fetchedAt))}
 		</div>
-		${rows.length ? renderRows(rows) : '<p>No active Earth events were returned by the feed.</p>'}
+		${rows.length ? renderRows(rows) : `<p>${data?.eventsAvailable === false ? 'Earth event feed is unavailable right now.' : 'No active Earth events were returned by the feed.'}</p>`}
 		<p class="artifact-note">Showing the first ${Math.min(events.length, 10)} events from the active EONET feed. Map actions use the latest point geometry available for each event.</p>
 		<a class="artifact-link" href="https://eonet.gsfc.nasa.gov/" target="_blank" rel="noopener noreferrer">Open EONET source</a>
 	`;
@@ -171,14 +171,17 @@ function renderEarthEventsDetails(data) {
 
 function renderLocalPassDetails(data = {}) {
 	const state = data.state || 'optional';
-	const detail = data.detail || 'Use browser location to estimate upcoming visible passes in a later wave.';
+	const detail = data.detail || 'Use your location to calculate upcoming geometric passes.';
+	const passes = Array.isArray(data.passes) ? data.passes : [];
+	const rows = passes.map((pass, index) => `<div class="artifact-row"><span class="row-index">0${index + 1}</span><div><strong>${esc(new Date(pass.start).toLocaleString())}</strong><p>${esc(Math.round(pass.maxElevation))}° peak elevation · until ${esc(new Date(pass.end).toLocaleTimeString())}</p></div></div>`).join('');
 	return `
 		<div class="artifact-grid">
 			${renderKeyValue('State', state)}
 			${renderKeyValue('Latitude', Number.isFinite(data.latitude) ? data.latitude.toFixed(2) : '--')}
 			${renderKeyValue('Longitude', Number.isFinite(data.longitude) ? data.longitude.toFixed(2) : '--')}
-			${renderKeyValue('Planner', 'later wave')}
+			${renderKeyValue('Method', 'SGP4 / TLE')}
 		</div>
+		${rows ? `<div class="artifact-rows">${rows}</div>` : ''}
 		<p class="artifact-note">${esc(detail)}</p>
 	`;
 }

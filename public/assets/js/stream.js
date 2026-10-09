@@ -4,6 +4,7 @@ let player = null;
 let currentVideoId = null;
 let currentEmbedUrl = null;
 let retryTimer = null;
+let pendingVideoId = null;
 
 function setStatus(label, mode = 'muted') {
 	const pill = document.getElementById('stream-status');
@@ -36,6 +37,7 @@ function resetPlayerHost() {
 
 function loadEmbedUrl(embedUrl) {
 	if (!embedUrl || currentEmbedUrl === embedUrl) return false;
+	pendingVideoId = null;
 	currentEmbedUrl = embedUrl;
 	currentVideoId = null;
 	const host = resetPlayerHost();
@@ -52,6 +54,11 @@ function loadEmbedUrl(embedUrl) {
 
 function loadVideo(videoId) {
 	if (!videoId) return;
+	if (!window.YT?.Player) {
+		pendingVideoId = videoId;
+		setOverlay('Waiting for video player');
+		return;
+	}
 	if (player && currentVideoId === videoId) return;
 	currentEmbedUrl = null;
 	currentVideoId = videoId;
@@ -79,24 +86,29 @@ function loadVideo(videoId) {
 				if (event.data === window.YT.PlayerState.ENDED) scheduleRefresh('Stream ended. Searching for replacement.');
 				if (event.data === window.YT.PlayerState.PLAYING) setOverlay('', false);
 			},
-			onError: () => scheduleRefresh('Stream error. Searching for replacement.')
+			onError: () => {
+				setStatus('Video unavailable', 'warn');
+				renderNoStreamSource();
+			}
 		}
 	});
 }
 
 function renderNoStreamSource() {
+	pendingVideoId = null;
 	currentVideoId = null;
 	currentEmbedUrl = null;
-	resetPlayerHost();
-	setOverlay('No stream source configured', true);
+	const host = resetPlayerHost();
+	if (host) host.innerHTML = '<div class="video-empty"><span class="video-empty-orbit" aria-hidden="true"></span><span class="video-empty-kicker">OFF AIR HERE / EARTH STILL IN MOTION</span><strong>The view is between signals.</strong><p>The tracker remains live. NASA hosts the current station video and mission coverage.</p><a href="https://www.nasa.gov/live/" target="_blank" rel="noopener noreferrer">Watch on NASA ↗</a></div>';
+	setOverlay('', false);
 }
 
 async function refreshStream(reason = 'Refreshing stream metadata') {
 	setOverlay(reason, true);
 	const stream = await getStream();
 	updateStreamUi(stream);
-	const mode = stream.status === 'live' ? 'good' : stream.degraded || stream.status === 'fallback' ? 'warn' : 'muted';
-	setStatus(`Stream: ${stream.status || 'fallback'}`, mode);
+	const mode = stream.status === 'live' ? 'good' : stream.status === 'fallback' ? 'warn' : 'muted';
+	setStatus(`Video: ${stream.status || 'unavailable'}`, mode);
 	if (stream.status === 'fallback' && stream.embedUrl) {
 		loadEmbedUrl(stream.embedUrl);
 		setOverlay('Fallback channel signal loaded', false);
@@ -121,7 +133,11 @@ function scheduleRefresh(reason) {
 
 export async function initStream() {
 	document.getElementById('refresh-stream')?.addEventListener('click', () => refreshStream('Manual stream refresh'));
-	if (window.YT?.Player) return refreshStream('Acquiring live signal');
-	window.onYouTubeIframeAPIReady = () => refreshStream('Acquiring live signal');
-	return null;
+	window.onYouTubeIframeAPIReady = () => {
+		if (!pendingVideoId) return;
+		const videoId = pendingVideoId;
+		pendingVideoId = null;
+		loadVideo(videoId);
+	};
+	return refreshStream('Checking station video');
 }

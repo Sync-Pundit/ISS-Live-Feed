@@ -19,23 +19,24 @@ async function latestXray() {
 async function activeEvents() {
 	try {
 		const data = await fetchJson('https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=20');
-		return (data.events || []).map(event => ({
+		return { available: true, events: (data.events || []).map(event => ({
 			id: event.id,
 			title: event.title,
 			categories: event.categories,
 			geometry: event.geometry
-		}));
-	} catch { return []; }
+		})) };
+	} catch { return { available: false, events: [] }; }
 }
 
 export async function onRequestGet({ request }) {
-	return cachedJson(request, 'space-weather-v1', 300, async () => {
-		const [kp, xray, events] = await Promise.all([latestKp(), latestXray(), activeEvents()]);
+	return cachedJson(request, 'space-weather-v2', 300, async () => {
+		const [kp, xray, eventResult] = await Promise.all([latestKp(), latestXray(), activeEvents()]);
 		return {
-			status: kp || xray || events.length ? 'ok' : 'degraded',
+			status: kp || xray || eventResult.available ? 'ok' : 'degraded',
 			kp,
 			xray,
-			events,
+			events: eventResult.events,
+			eventsAvailable: eventResult.available,
 			fetchedAt: new Date().toISOString(),
 			sources: ['NOAA SWPC', 'NASA EONET']
 		};
