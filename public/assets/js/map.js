@@ -1,4 +1,4 @@
-import { buildFootprintCircle, fallbackForecast, forecastFromTle } from './orbit.js';
+import { buildFootprintCircle, forecastFromTle } from './orbit.js';
 
 let map;
 let marker;
@@ -24,25 +24,28 @@ function splitAntimeridian(prev, next) {
 }
 
 export function initMap() {
-	const dark = window.L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
-		subdomains: 'abcd',
-		maxZoom: 7
-	});
-	const darkLabels = window.L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', {
-		subdomains: 'abcd',
+	const earth = window.L.tileLayer('https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/BlueMarble_NextGeneration/default/2004-12-01/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg', {
+		minZoom: 1,
 		maxZoom: 7,
-		pane: 'overlayPane'
+		attribution: 'Imagery: <a href="https://earthdata.nasa.gov/gibs" target="_blank" rel="noopener noreferrer">NASA ESDIS GIBS</a>'
 	});
-	const topo = window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 7 });
+	const night = window.L.tileLayer('https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_CityLights_2012/default/2012-01-01/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg', {
+		minZoom: 1,
+		maxZoom: 7,
+		attribution: 'Imagery: <a href="https://earthdata.nasa.gov/gibs" target="_blank" rel="noopener noreferrer">NASA ESDIS GIBS</a>'
+	});
 	map = window.L.map('iss-map', {
 		worldCopyJump: true,
+		minZoom: 1,
+		maxZoom: 7,
+		scrollWheelZoom: false,
 		zoomControl: true,
-		attributionControl: false,
-		layers: [dark, darkLabels]
-	}).setView([0, 0], 3);
+		attributionControl: true,
+		layers: [earth]
+	}).setView([0, 0], 2);
 	window.L.control.layers(
-		{ 'Dark orbit': dark, 'Open map': topo },
-		{ Labels: darkLabels },
+		{ 'Earth / NASA': earth, 'Night lights / NASA': night },
+		{},
 		{ position: 'topright' }
 	).addTo(map);
 
@@ -122,8 +125,8 @@ export function updateMap(state, tle) {
 	liveTrail.setLatLngs(trail);
 
 	const forecast = forecastFromTle(tle);
-	forecastTrail.setLatLngs(forecast.length ? forecast : fallbackForecast(state));
-	document.getElementById('path-confidence').textContent = forecast.length ? 'Forecast: SGP4 from TLE' : 'Forecast: approximate fallback';
+	forecastTrail.setLatLngs(forecast);
+	document.getElementById('path-confidence').textContent = forecast.length ? 'Forecast: SGP4 from TLE' : 'Forecast unavailable until orbit elements load';
 
 	const footprint = buildFootprintCircle(state.latitude, state.longitude, state.footprint);
 	footprintLayer.setLatLngs(footprint);

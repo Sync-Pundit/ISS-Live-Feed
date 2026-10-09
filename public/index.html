@@ -4,19 +4,21 @@
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width,initial-scale=1" />
-	<title>ISS Live Console | Sync_Pundit</title>
-	<meta name="description" content="Live ISS stream, orbital map, station telemetry, and mission context." />
+	<title>ISS / Earth in motion | Sync_Pundit</title>
+	<meta name="description" content="Follow the International Space Station across Earth, inspect its orbit, and open NASA's live station view." />
 	<link rel="icon" href="/assets/favicon.png" />
-	<meta property="og:title" content="ISS Live Console" />
-	<meta property="og:description" content="Self-healing live ISS stream with orbital telemetry and mission context." />
+	<meta property="og:title" content="ISS / Earth in motion" />
+	<meta property="og:description" content="A live orbital observatory from Sync_Pundit." />
 	<meta property="og:type" content="website" />
-	<meta property="og:url" content="https://iss.syncpundit.io/" />
 	<meta property="og:image" content="/assets/favicon.png" />
 	<meta name="twitter:card" content="summary_large_image" />
 	<link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin />
 	<link rel="preconnect" href="https://i.ytimg.com" crossorigin />
 	<link rel="preconnect" href="https://unpkg.com" crossorigin />
 	<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet" />
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin />
 	<link rel="stylesheet" href="/assets/css/app.css" />
 </head>
@@ -25,45 +27,48 @@
 	<div class="orbital-bg" aria-hidden="true"></div>
 	<div class="console-shell">
 		<header class="mission-header">
+			<a class="brand" href="#top" aria-label="Sync Pundit ISS home"><span class="brand-mark" aria-hidden="true"><i></i></span><span>SYNC_PUNDIT <small>/ ISS</small></span></a>
+			<nav class="site-nav" aria-label="Site navigation"><a href="#orbit">Orbit</a><a href="#signal">Station view</a><a href="#context-title">Signals</a></nav>
+			<div class="header-actions"><span class="header-live"><i aria-hidden="true"></i><span id="tracking-status">ACQUIRING ORBIT</span></span><button class="theme-button" type="button" id="theme-toggle" aria-label="Switch to light mode" aria-pressed="false">◐ <span>Theme</span></button></div>
+		</header>
+		<section class="intro" id="top" aria-labelledby="page-title">
 			<div class="mission-title-block">
-				<p class="eyebrow">Low Earth Orbit / Public Signal</p>
-				<h1>ISS Live Console</h1>
-				<p class="mission-copy">Watch the station, track the orbit, and read the live public telemetry from one cockpit.</p>
+				<p class="eyebrow"><span class="section-number">01 / 04</span> THE ORBITAL OBSERVATORY <span class="eyebrow-rule"></span> OBJECT 25544</p>
+				<h1 id="page-title">Earth is moving<br /><em>beneath us.</em></h1>
+				<p class="mission-copy">One station. Sixteen sunrises a day. Follow its path around the planet, then look through NASA's window when a signal is live.</p>
 			</div>
 			<div class="mission-status" aria-label="System status">
-				<span class="status-pill" id="stream-status"><span class="pulse"></span>Stream: booting</span>
-				<span class="status-pill muted" id="utc-clock">UTC --:--:--</span>
-				<button class="control-button" type="button" id="refresh-stream">Refresh stream</button>
+				<span class="intro-orbit" aria-hidden="true"><i></i></span>
+				<span class="clock-label">MISSION TIME / UTC</span><strong id="utc-clock">--:--:-- UTC</strong>
 			</div>
-		</header>
+		</section>
 
 		<main class="cockpit-grid">
-			<section class="panel live-panel" aria-labelledby="live-title">
+			<section class="panel map-panel" id="orbit" aria-labelledby="map-title">
 				<div class="panel-head">
 					<div>
-						<p class="panel-kicker">Live Window</p>
-						<h2 id="live-title">Station view</h2>
+						<p class="panel-kicker">01 / LIVE ORBIT</p>
+						<h2 id="map-title">The station, <em>right now.</em></h2>
 					</div>
-					<div class="meta-stack">
-						<span id="stream-source">source pending</span>
-						<span id="stream-checked">not checked</span>
+					<div class="map-controls" aria-label="Map layers">
+						<label><input type="checkbox" id="toggle-terminator" checked /> Day/night</label>
+						<label><input type="checkbox" id="toggle-footprint" checked /> Footprint</label>
+						<label><input type="checkbox" id="toggle-events" checked /> Events</label>
 					</div>
 				</div>
-				<div class="video-frame" id="video-frame">
-					<div id="yt-player" class="yt-player" role="img" aria-label="ISS live video loading"></div>
-					<div class="video-overlay" id="video-overlay"><span class="loader-dot"></span><span>Acquiring live signal</span></div>
+				<div class="map-stage"><div id="iss-map" class="map-shell"></div><div class="map-overlay" aria-hidden="true"><span class="map-overlay-label">CURRENT FIX / ISS</span><strong id="hero-lat">--</strong><strong id="hero-lon">--</strong><span class="map-overlay-rule"></span><small>Position updates every 5 seconds</small></div></div>
+				<div class="map-readout">
+					<span id="map-updated">Map waiting for first fix</span>
+					<span id="path-confidence">Forecast: pending TLE</span>
 				</div>
-				<div class="stream-details">
-					<strong id="stream-title">ISS stream fallback standing by</strong>
-					<p id="stream-note">The console will switch streams automatically when Cloudflare stream discovery is configured.</p>
-				</div>
+				<p class="map-credit">EARTH IMAGERY / NASA GIBS BLUE MARBLE · ORBIT / CELESTRAK · POSITION / WHERE THE ISS AT</p>
 			</section>
 
 			<aside class="panel telemetry-panel" aria-labelledby="telemetry-title">
 				<div class="panel-head compact">
 					<div>
-						<p class="panel-kicker">Telemetry Rail</p>
-						<h2 id="telemetry-title">Station state</h2>
+						<p class="panel-kicker">02 / INSTRUMENTS</p>
+						<h2 id="telemetry-title">Right now.</h2>
 					</div>
 					<span class="freshness" id="telemetry-freshness">waiting</span>
 				</div>
@@ -76,36 +81,38 @@
 					<div class="metric"><span>Footprint</span><strong id="footprint">--</strong></div>
 				</div>
 				<div class="orbit-events">
-					<div><span>Next transition</span><strong id="next-transition">--</strong></div>
-					<div><span>Ground track</span><strong id="ground-region">Resolving</strong></div>
+					<div><span>Position source</span><strong id="next-transition">--</strong></div>
 					<div><span>TLE epoch</span><strong id="tle-epoch">Pending</strong></div>
 				</div>
 			</aside>
 
-			<section class="panel map-panel" aria-labelledby="map-title">
+			<section class="panel live-panel" id="signal" aria-labelledby="live-title">
 				<div class="panel-head">
 					<div>
-						<p class="panel-kicker">Orbital Map</p>
-						<h2 id="map-title">Live ground track</h2>
+						<p class="panel-kicker">03 / THROUGH THE WINDOW</p>
+						<h2 id="live-title">Look up there.</h2>
 					</div>
-					<div class="map-controls" aria-label="Map layers">
-						<label><input type="checkbox" id="toggle-terminator" checked /> Day/night</label>
-						<label><input type="checkbox" id="toggle-footprint" checked /> Footprint</label>
-						<label><input type="checkbox" id="toggle-events" checked /> Events</label>
+					<div class="meta-stack">
+						<span id="stream-source">source pending</span>
+						<span id="stream-checked">not checked</span>
 					</div>
 				</div>
-				<div id="iss-map" class="map-shell"></div>
-				<div class="map-readout">
-					<span id="map-updated">Map waiting for first fix</span>
-					<span id="path-confidence">Forecast: pending TLE</span>
+				<div class="video-frame" id="video-frame">
+						<div id="yt-player" class="yt-player"></div>
+					<div class="video-overlay" id="video-overlay"><span class="loader-dot"></span><span>Acquiring live signal</span></div>
+				</div>
+				<div class="stream-details">
+					<div class="stream-controls"><span class="status-pill" id="stream-status"><span class="pulse"></span>Video: checking</span><button class="control-button" type="button" id="refresh-stream">Check signal ↻</button></div>
+					<strong id="stream-title">Station video status pending</strong>
+					<p id="stream-note">Checking official video availability.</p>
 				</div>
 			</section>
 
 			<section class="panel context-panel" aria-labelledby="context-title">
 				<div class="panel-head">
 					<div>
-						<p class="panel-kicker">Mission Context</p>
-						<h2 id="context-title">Orbit intelligence</h2>
+						<p class="panel-kicker">04 / BEYOND THE TRACK</p>
+						<h2 id="context-title">Signals from orbit.</h2>
 					</div>
 				</div>
 				<div class="context-grid">
@@ -116,7 +123,7 @@
 							<button class="card-toggle" type="button" aria-expanded="false" aria-controls="context-artifact">Inspect</button>
 						</div>
 						<strong id="docked-summary">Pending source</strong>
-						<p id="docked-list">Configure docked-craft telemetry or curated JSON.</p>
+						<p id="docked-list">Reading NASA's visiting vehicle summary.</p>
 						<a class="source-chip" id="docked-source" href="https://www.nasa.gov/international-space-station/space-station-visiting-vehicles/" target="_blank" rel="noopener noreferrer">manifest awaiting uplink</a>
 					</article>
 					<article class="context-card" data-signal="loading" id="space-weather-card" data-artifact="space-weather">
@@ -136,7 +143,7 @@
 							<button class="card-toggle" type="button" aria-expanded="false" aria-controls="context-artifact">Inspect</button>
 						</div>
 						<strong id="earth-events-summary">Loading</strong>
-						<p id="earth-events-detail">NASA EONET events near the orbital path.</p>
+						<p id="earth-events-detail">Current NASA EONET events around Earth.</p>
 						<small id="earth-events-meta">feed pending</small>
 					</article>
 					<article class="context-card action-card" data-signal="optional" data-artifact="local-pass">
@@ -146,8 +153,8 @@
 							<button class="card-toggle" type="button" aria-expanded="false" aria-controls="context-artifact">Inspect</button>
 						</div>
 						<strong id="pass-summary">Optional</strong>
-						<p>Use browser location to estimate upcoming visible passes in a later wave.</p>
-						<button class="control-button ghost" type="button" id="local-pass">Enable location</button>
+						<p id="pass-detail">Calculate geometric passes from your location. Coordinates stay in your browser.</p>
+						<button class="control-button ghost" type="button" id="local-pass">Use my location</button>
 					</article>
 				</div>
 				<section class="context-artifact" id="context-artifact" hidden aria-live="polite">

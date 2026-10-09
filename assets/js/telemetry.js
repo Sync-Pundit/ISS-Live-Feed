@@ -37,42 +37,24 @@ function safeUrl(value, fallback) {
 	}
 }
 
-export function nextTerminator(lat, lon) {
-	if (!window.SunCalc || !Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-	const isDay = date => window.SunCalc.getPosition(date, lat, lon).altitude > 0;
-	const now = Date.now();
-	const nowIsDay = isDay(new Date(now));
-	let lo = 0;
-	let hi = 50 * 60 * 1000;
-	for (let i = 0; i < 24; i += 1) {
-		const mid = Math.floor((lo + hi) / 2);
-		if (isDay(new Date(now + mid)) === nowIsDay) lo = mid;
-		else hi = mid;
-	}
-	const label = nowIsDay ? 'Sunset' : 'Sunrise';
-	const seconds = Math.max(0, Math.round(hi / 1000));
-	const minutes = Math.floor(seconds / 60);
-	const rest = seconds % 60;
-	return `${label} in ${minutes}:${String(rest).padStart(2, '0')}`;
-}
-
 export function renderTelemetry(state, tle) {
 	const $ = id => document.getElementById(id);
 	$('lat').textContent = fmtLat(state.latitude);
 	$('lon').textContent = fmtLon(state.longitude);
+	$('hero-lat').textContent = fmtLat(state.latitude);
+	$('hero-lon').textContent = fmtLon(state.longitude);
 	$('alt').textContent = fmtKm(state.altitude);
 	$('vel').textContent = fmtKmh(state.velocity);
 	$('visibility').textContent = state.visibility || '--';
 	$('footprint').textContent = fmtKm(state.footprint, 0);
-	$('next-transition').textContent = nextTerminator(state.latitude, state.longitude) || '--';
-	$('ground-region').textContent = state.region || 'Ocean / unresolved';
+	$('next-transition').textContent = state.source || '--';
 	$('tle-epoch').textContent = tle?.epoch || tle?.status || 'Pending';
 
 	const freshness = $('telemetry-freshness');
 	freshness.textContent = ageLabel(state.fetchedAt || state.timestampMs || Date.now());
 	freshness.classList.toggle('fresh', !state.degraded);
 	freshness.classList.toggle('stale', Boolean(state.degraded));
-	$('map-updated').textContent = `Last fix ${new Date(state.fetchedAt || Date.now()).toLocaleTimeString()}`;
+	$('map-updated').textContent = `Last fix ${new Date(state.fetchedAt || Date.now()).toLocaleTimeString('en-GB', { timeZone: 'UTC', hour12: false })} UTC`;
 }
 
 export function renderSpaceWeather(data) {
@@ -97,12 +79,12 @@ export function renderSpaceWeather(data) {
 	const events = Array.isArray(data?.events) ? data.events : [];
 	const eventCard = document.getElementById('earth-events-card');
 	const eventMeta = document.getElementById('earth-events-meta');
-	document.getElementById('earth-events-summary').textContent = events.length ? `${events.length} active events` : 'No event feed';
+	document.getElementById('earth-events-summary').textContent = !data?.eventsAvailable ? 'Event feed unavailable' : events.length ? `${events.length} recent open events` : 'No open events returned';
 	document.getElementById('earth-events-detail').textContent = events.length
 		? events.slice(0, 3).map(event => event.title).join(' • ')
-		: 'NASA EONET context will appear when available.';
-	eventMeta.textContent = events.length ? 'EONET feed active' : 'no hazards reported';
-	eventCard.dataset.signal = events.length > 20 ? 'warn' : events.length ? 'good' : 'hold';
+		: data?.eventsAvailable ? 'No open events in the current sample.' : 'NASA EONET feed could not be reached.';
+	eventMeta.textContent = data?.eventsAvailable ? 'NASA EONET / latest 20' : 'feed unavailable';
+	eventCard.dataset.signal = data?.eventsAvailable ? 'good' : 'hold';
 }
 
 export function renderDockedVehicles(data) {

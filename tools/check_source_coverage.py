@@ -24,7 +24,7 @@ CHECKS = [
     ('Space weather endpoint route', "'/api/space-weather'" in WORKER),
     ('Space weather renderer', 'function renderSpaceWeather' in TELEMETRY),
     ('Earth events renderer path', 'earth-events-summary' in TELEMETRY and 'renderEvents(weather.events || [])' in APP),
-    ('Local pass explicit stub copy', 'later wave' in INDEX and 'initLocalPassStub' in APP),
+    ('Local pass calculation', 'predictPasses' in APP and 'Use my location' in INDEX),
 ]
 
 failed = [name for name, ok in CHECKS if not ok]
