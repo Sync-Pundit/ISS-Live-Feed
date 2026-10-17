@@ -19,6 +19,7 @@ function initTheme() {
 	const button = document.getElementById('theme-toggle');
 	function setTheme(value) {
 		document.documentElement.dataset.theme = value;
+		document.querySelector('link[rel="icon"]').href = value === 'light' ? '/assets/favicon.png' : '/assets/favicon-dark.jpg';
 		button.setAttribute('aria-pressed', value === 'light' ? 'true' : 'false');
 		button.setAttribute('aria-label', `Switch to ${value === 'light' ? 'dark' : 'light'} mode`);
 	}
